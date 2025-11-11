@@ -44,6 +44,34 @@
             opacity: 0.9;
         }
         
+        .tabs {
+            display: flex;
+            gap: 10px;
+            padding: 20px 30px 0 30px;
+            background: white;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            background: #f8f9fa;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #666;
+        }
+        
+        .tab:hover {
+            background: #e9ecef;
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
         .content {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -249,13 +277,18 @@
             <p>Generate beautiful diagrams from natural language using AI</p>
         </header>
         
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('diagram')">📊 Diagram</button>
+            <button class="tab" onclick="switchTab('wbs')">📋 WBS</button>
+        </div>
+        
         <div class="content">
             <!-- Input Panel -->
             <div class="panel">
                 <h2>📝 Input</h2>
                 
                 <div class="form-group">
-                    <label for="prompt">Describe your diagram:</label>
+                    <label for="prompt" id="promptLabel">Describe your diagram:</label>
                     <textarea 
                         id="prompt" 
                         rows="8" 
@@ -272,7 +305,7 @@
                         </select>
                     </div>
                     
-                    <div class="form-group">
+                    <div class="form-group" id="layoutGroup">
                         <label for="layout">Layout Engine:</label>
                         <select id="layout">
                             <option value="dot">dot (Hierarchical)</option>
@@ -285,18 +318,15 @@
                     </div>
                 </div>
                 
-                <button id="generateBtn" onclick="generateDiagram()">
+                <button id="generateBtn" onclick="generate()">
                     Generate Diagram
                 </button>
                 
                 <div id="message"></div>
                 
-                <div class="examples">
+                <div class="examples" id="examples">
                     <h3>💡 Try these examples:</h3>
-                    <span class="example-btn" onclick="setExample('flowchart')">Login Flowchart</span>
-                    <span class="example-btn" onclick="setExample('network')">Network Topology</span>
-                    <span class="example-btn" onclick="setExample('class')">Class Diagram</span>
-                    <span class="example-btn" onclick="setExample('process')">Business Process</span>
+                    <div id="exampleButtons"></div>
                 </div>
             </div>
             
@@ -311,15 +341,103 @@
     </div>
     
     <script>
-        const examples = {
-            flowchart: "Draw a flowchart for user login that shows: start, enter username and password, validate credentials, if valid show dashboard, if invalid show error and retry",
-            network: "Create a network diagram showing a router connected to a firewall, which connects to a web server, app server, and database server",
-            class: "Design a class diagram for an e-commerce system with classes: User, Product, Order, ShoppingCart, and Payment",
-            process: "Show a business process for order fulfillment: receive order, check inventory, if available process payment and ship, if unavailable notify customer"
+        let currentMode = 'diagram'; // 'diagram' or 'wbs'
+        
+        const diagramExamples = {
+            flowchart: {
+                label: "Login Flowchart",
+                text: "Draw a flowchart for user login that shows: start, enter username and password, validate credentials, if valid show dashboard, if invalid show error and retry"
+            },
+            network: {
+                label: "Network Topology",
+                text: "Create a network diagram showing a router connected to a firewall, which connects to a web server, app server, and database server"
+            },
+            class: {
+                label: "Class Diagram",
+                text: "Design a class diagram for an e-commerce system with classes: User, Product, Order, ShoppingCart, and Payment"
+            },
+            process: {
+                label: "Business Process",
+                text: "Show a business process for order fulfillment: receive order, check inventory, if available process payment and ship, if unavailable notify customer"
+            }
         };
         
-        function setExample(type) {
-            document.getElementById('prompt').value = examples[type];
+        const wbsExamples = {
+            webapp: {
+                label: "Web App Project",
+                text: "Create a WBS for building a web application with planning, design, development, testing, and deployment phases"
+            },
+            mobile: {
+                label: "Mobile App",
+                text: "Create a WBS for a mobile app development project with user authentication, main features, payment integration, and app store deployment"
+            },
+            marketing: {
+                label: "Marketing Campaign",
+                text: "Create a WBS for launching a product marketing campaign with market research, content creation, social media, email marketing, and analytics"
+            },
+            research: {
+                label: "Research Project",
+                text: "Create a WBS for a research project with literature review, data collection, analysis, paper writing, and publication phases"
+            }
+        };
+        
+        function switchTab(mode) {
+            currentMode = mode;
+            
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update UI based on mode
+            if (mode === 'diagram') {
+                document.getElementById('promptLabel').textContent = 'Describe your diagram:';
+                document.getElementById('prompt').placeholder = 'Example: Draw a flowchart for user authentication with login, password validation, and success/error states';
+                document.getElementById('generateBtn').textContent = 'Generate Diagram';
+                document.getElementById('layoutGroup').style.display = 'block';
+            } else if (mode === 'wbs') {
+                document.getElementById('promptLabel').textContent = 'Describe your project structure:';
+                document.getElementById('prompt').placeholder = 'Example: Create a WBS for a website redesign project with planning, design, development, and deployment phases';
+                document.getElementById('generateBtn').textContent = 'Generate WBS';
+                document.getElementById('layoutGroup').style.display = 'none';
+            }
+            
+            // Update examples
+            updateExamples();
+            
+            // Clear previous output
+            document.getElementById('output').innerHTML = '<div class="placeholder">Your ' + mode + ' will appear here...</div>';
+            document.getElementById('message').innerHTML = '';
+            document.getElementById('prompt').value = '';
+        }
+        
+        function updateExamples() {
+            const exampleButtons = document.getElementById('exampleButtons');
+            exampleButtons.innerHTML = '';
+            
+            const examples = currentMode === 'diagram' ? diagramExamples : wbsExamples;
+            
+            for (const [key, example] of Object.entries(examples)) {
+                const btn = document.createElement('span');
+                btn.className = 'example-btn';
+                btn.textContent = example.label;
+                btn.onclick = () => setExample(example.text);
+                exampleButtons.appendChild(btn);
+            }
+        }
+        
+        function setExample(text) {
+            document.getElementById('prompt').value = text;
+        }
+        
+        // Initialize examples
+        updateExamples();
+        
+        async function generate() {
+            if (currentMode === 'diagram') {
+                await generateDiagram();
+            } else if (currentMode === 'wbs') {
+                await generateWBS();
+            }
         }
         
         async function generateDiagram() {
@@ -386,11 +504,73 @@
             }
         }
         
+        async function generateWBS() {
+            const prompt = document.getElementById('prompt').value.trim();
+            const format = document.getElementById('format').value;
+            const output = document.getElementById('output');
+            const message = document.getElementById('message');
+            const btn = document.getElementById('generateBtn');
+            
+            // Clear previous messages
+            message.innerHTML = '';
+            
+            // Validate input
+            if (!prompt) {
+                message.innerHTML = '<div class="error">Please enter a project description.</div>';
+                return;
+            }
+            
+            // Show loading state
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Generating...';
+            output.innerHTML = '<div class="placeholder">Generating your WBS...</div>';
+            
+            try {
+                // Call the WBS API
+                const response = await fetch('/api/wbs/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        format: format
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to generate WBS');
+                }
+                
+                // Handle response based on format
+                if (format === 'svg') {
+                    const svgText = await response.text();
+                    output.innerHTML = svgText;
+                    message.innerHTML = '<div class="success">✓ WBS generated successfully!</div>';
+                } else if (format === 'png') {
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    output.innerHTML = `<img src="${url}" alt="Generated WBS">`;
+                    message.innerHTML = '<div class="success">✓ WBS generated successfully!</div>';
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                output.innerHTML = '<div class="placeholder">Failed to generate WBS</div>';
+                message.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            } finally {
+                // Reset button
+                btn.disabled = false;
+                btn.innerHTML = 'Generate WBS';
+            }
+        }
+        
         // Allow Enter key to submit (with Shift+Enter for new line)
         document.getElementById('prompt').addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                generateDiagram();
+                generate();
             }
         });
     </script>

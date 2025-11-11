@@ -87,11 +87,23 @@ class Settings(BaseSettings):
         le=100000,
         description="Maximum length of DOT code"
     )
+    MAX_PLANTUML_LENGTH: int = Field(
+        default=50000,
+        ge=1,
+        le=100000,
+        description="Maximum length of PlantUML code"
+    )
     MAX_TOKENS: int = Field(
         default=1024,
         ge=1,
         le=4096,
         description="Maximum tokens for LLM response"
+    )
+    
+    # PlantUML Configuration
+    PLANTUML_SERVER_URL: str = Field(
+        default="https://www.plantuml.com/plantuml",
+        description="PlantUML server URL for rendering diagrams"
     )
     
     # CORS Configuration
