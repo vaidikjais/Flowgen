@@ -19,18 +19,47 @@ class Settings(BaseSettings):
     3. Default values (defined here)
     """
     
+    # LLM Provider Configuration
+    LLM_PROVIDER: str = Field(
+        description="LLM provider: 'openai', 'nvidia', or 'gemini'"
+    )
+    
     # OpenAI API Configuration
     OPENAI_API_KEY: Optional[str] = Field(
         default=None,
         description="OpenAI API key for LLM access"
     )
-    OPENAI_MODEL: str = Field(
-        default="gpt-4",
+    OPENAI_MODEL: Optional[str] = Field(
+        default=None,
         description="OpenAI model to use for diagram generation"
     )
-    OPENAI_BASE_URL: str = Field(
-        default="https://api.openai.com/v1",
+    OPENAI_BASE_URL: Optional[str] = Field(
+        default=None,
         description="Base URL for OpenAI API (can be changed for proxies)"
+    )
+    
+    # NVIDIA NIM Configuration
+    NVIDIA_API_KEY: Optional[str] = Field(
+        default=None,
+        description="NVIDIA NIM API key"
+    )
+    NVIDIA_MODEL: Optional[str] = Field(
+        default=None,
+        description="NVIDIA NIM model name"
+    )
+    NVIDIA_BASE_URL: Optional[str] = Field(
+        default=None,
+        description="NVIDIA NIM API base URL"
+    )
+    
+    # Google Gemini Configuration
+    GOOGLE_API_KEY: Optional[str] = Field(
+        default=None,
+        description="Google Gemini API key"
+    )
+    GEMINI_MODEL: Optional[str] = Field(
+        default=None,
+        description="Google Gemini model name"
     )
     
     # Server Configuration
@@ -87,6 +116,18 @@ class Settings(BaseSettings):
         description="Enable debug mode"
     )
     
+    @field_validator("LLM_PROVIDER")
+    @classmethod
+    def validate_llm_provider(cls, v: str) -> str:
+        """Validate LLM provider is valid."""
+        valid_providers = ["openai", "nvidia", "gemini"]
+        v_lower = v.lower().strip()
+        if v_lower not in valid_providers:
+            raise ValueError(
+                f"Invalid LLM_PROVIDER: {v}. Must be one of {valid_providers}"
+            )
+        return v_lower
+    
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, v):
@@ -114,18 +155,28 @@ class Settings(BaseSettings):
         extra="ignore"
     )
     
-    def validate_openai(self) -> None:
-        """Validate OpenAI configuration and warn if missing."""
-        if not self.OPENAI_API_KEY:
-            print(
-                "⚠️  WARNING: OPENAI_API_KEY not set. "
-                "LLM will use fallback mock implementation."
-            )
+    def validate_llm(self) -> None:
+        """Validate LLM configuration and warn if missing."""
+        if self.LLM_PROVIDER == "openai":
+            if not self.OPENAI_API_KEY:
+                print("⚠️  WARNING: OPENAI_API_KEY not set. LLM will use fallback mock implementation.")
+            if not self.OPENAI_MODEL:
+                print("⚠️  WARNING: OPENAI_MODEL not set. Please set in .env")
+        elif self.LLM_PROVIDER == "nvidia":
+            if not self.NVIDIA_API_KEY:
+                print("⚠️  WARNING: NVIDIA_API_KEY not set. LLM will use fallback mock implementation.")
+            if not self.NVIDIA_MODEL:
+                print("⚠️  WARNING: NVIDIA_MODEL not set. Please set in .env")
+        elif self.LLM_PROVIDER == "gemini":
+            if not self.GOOGLE_API_KEY:
+                print("⚠️  WARNING: GOOGLE_API_KEY not set. LLM will use fallback mock implementation.")
+            if not self.GEMINI_MODEL:
+                print("⚠️  WARNING: GEMINI_MODEL not set. Please set in .env")
 
 
 # Create global settings instance
 settings = Settings()
 
-# Validate OpenAI configuration on startup
-settings.validate_openai()
+# Validate LLM configuration on startup
+settings.validate_llm()
 

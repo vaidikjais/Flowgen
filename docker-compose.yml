@@ -3,9 +3,9 @@ version: "3.8"
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: diagramgpt_postgres
+    container_name: flowgen_postgres
     environment:
-      POSTGRES_DB: diagramgpt
+      POSTGRES_DB: flowgen
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
@@ -19,14 +19,14 @@ services:
       retries: 5
     restart: unless-stopped
 
-  diagram-gpt:
+  flowgen:
     build: .
-    container_name: diagram-gpt-fastapi
+    container_name: flowgen-fastapi
     ports:
       - "8000:8000"
     environment:
       # Database Configuration
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/diagramgpt
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/flowgen
 
       # Set your OpenAI API key here or use .env file
       - OPENAI_API_KEY=${OPENAI_API_KEY}

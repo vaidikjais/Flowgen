@@ -1,16 +1,21 @@
 [project]
-name = "diagramgpt"
+name = "flowgen"
 version = "0.1.0"
 description = "Generate diagrams from natural language using LLM and Graphviz"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "fastapi>=0.109.0",
+    "fastapi[standard]>=0.109.0",
     "uvicorn[standard]>=0.27.0",
     "pydantic>=2.5.3",
     "pydantic-settings>=2.1.0",
     "python-dotenv>=1.0.0",
     "openai>=1.10.0",
+    "langchain>=0.1.0",
+    "langchain-core>=0.1.10",
+    "langchain-openai>=0.0.2",
+    "langchain-nvidia-ai-endpoints>=0.0.11",
+    "langchain-google-genai>=0.0.5",
     "graphviz>=0.20.1",
     "python-multipart>=0.0.6",
 ]
