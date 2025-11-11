@@ -104,4 +104,3 @@ def get_request_id() -> Optional[str]:
 def clear_request_id() -> None:
     """Clear request ID from context."""
     request_id_var.set(None)
-

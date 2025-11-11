@@ -10,11 +10,14 @@ Generate beautiful diagrams and Work Breakdown Structures from natural language 
 
 ## ✨ Features
 
-### 🎯 Dual Diagram Types
+### 🎯 Three Diagram Types
+
 - **Flowcharts & Diagrams** - Network topologies, flowcharts, class diagrams, state machines (via Graphviz)
 - **Work Breakdown Structures (WBS)** - Project hierarchies, task breakdowns, organizational charts (via PlantUML)
+- **Gantt Charts** - Project timelines, task schedules, milestone tracking (via Mermaid)
 
 ### 🚀 Powerful Capabilities
+
 - **Natural Language Input** - Describe in plain English, get professional diagrams
 - **Multiple Output Formats** - SVG (vector) and PNG (raster)
 - **Multiple Layout Engines** - 6 Graphviz engines for optimal diagram layout
@@ -29,6 +32,7 @@ Generate beautiful diagrams and Work Breakdown Structures from natural language 
 ### Prerequisites
 
 **Required:**
+
 1. **Python 3.11+**
 2. **Graphviz** (system package)
 3. **LLM API Key** (OpenAI, NVIDIA NIM, or Google Gemini)
@@ -113,6 +117,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 **Access the application:**
+
 - **Web UI**: http://localhost:8000
 - **API Docs**: http://localhost:8000/docs
 - **Health Check**: http://localhost:8000/health
@@ -124,12 +129,12 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 Click the **"📊 Diagram"** tab and try:
 
 ```
-Draw a flowchart for user authentication with login, validation, 
+Draw a flowchart for user authentication with login, validation,
 and error handling
 ```
 
 ```
-Create a network diagram with router, firewall, web servers, 
+Create a network diagram with router, firewall, web servers,
 and database cluster
 ```
 
@@ -140,16 +145,33 @@ and database cluster
 Click the **"📋 WBS"** tab and try:
 
 ```
-Create a WBS for building a mobile app with planning, design, 
+Create a WBS for building a mobile app with planning, design,
 development, testing, and deployment phases
 ```
 
 ```
-Create a WBS for an e-commerce platform with user management, 
+Create a WBS for an e-commerce platform with user management,
 product catalog, shopping cart, and payment processing
 ```
 
 **Supports:** Project hierarchies, work breakdowns, task decomposition, organizational structures.
+
+### 3. Generate Gantt Charts (Mermaid)
+
+Click the **"📅 Gantt"** tab and try:
+
+```
+Create a project timeline for a web application development with
+planning phase in January, development in February-March,
+testing in April, and deployment in May
+```
+
+```
+Create a Gantt chart for a marketing campaign with research,
+content creation, social media rollout, and performance analysis
+```
+
+**Supports:** Project timelines, task scheduling, dependencies, milestones, critical paths.
 
 ## 📚 API Reference
 
@@ -162,6 +184,7 @@ POST /api/diagram/generate
 ```
 
 **Request:**
+
 ```json
 {
   "prompt": "Draw a flowchart for order processing",
@@ -171,6 +194,7 @@ POST /api/diagram/generate
 ```
 
 **Parameters:**
+
 - `prompt` (string, required) - Natural language description
 - `format` (string) - "svg" or "png" (default: "svg")
 - `layout` (string) - "dot", "neato", "fdp", "sfdp", "twopi", "circo" (default: "dot")
@@ -178,6 +202,7 @@ POST /api/diagram/generate
 **Response:** Image bytes (SVG/PNG) or JSON with base64 image
 
 **Example:**
+
 ```bash
 curl -X POST http://localhost:8000/api/diagram/generate \
   -H "Content-Type: application/json" \
@@ -195,6 +220,7 @@ POST /api/diagram/preview
 ```
 
 **Request:**
+
 ```json
 {
   "dot": "digraph { A -> B -> C; }",
@@ -212,6 +238,7 @@ POST /api/wbs/generate
 ```
 
 **Request:**
+
 ```json
 {
   "prompt": "Create a WBS for software development project",
@@ -220,12 +247,14 @@ POST /api/wbs/generate
 ```
 
 **Parameters:**
+
 - `prompt` (string, required) - Natural language description
 - `format` (string) - "svg" or "png" (default: "svg")
 
 **Response:** Image bytes (SVG/PNG) or JSON with base64 image
 
 **Example:**
+
 ```bash
 curl -X POST http://localhost:8000/api/wbs/generate \
   -H "Content-Type: application/json" \
@@ -243,9 +272,61 @@ POST /api/wbs/preview
 ```
 
 **Request:**
+
 ```json
 {
   "plantuml_code": "@startwbs\n* Project\n** Phase 1\n@endwbs",
+  "format": "svg"
+}
+```
+
+### Gantt Chart Endpoints
+
+#### Generate Gantt Chart from Natural Language
+
+```bash
+POST /api/gantt/generate
+```
+
+**Request:**
+
+```json
+{
+  "prompt": "Create a project timeline for web app development",
+  "format": "svg"
+}
+```
+
+**Parameters:**
+
+- `prompt` (string, required) - Natural language description
+- `format` (string) - "svg" or "png" (default: "svg")
+
+**Response:** Image bytes (SVG/PNG) or JSON with base64 image
+
+**Example:**
+
+```bash
+curl -X POST http://localhost:8000/api/gantt/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Project timeline with planning, development, and testing phases",
+    "format": "svg"
+  }' \
+  --output gantt.svg
+```
+
+#### Preview Mermaid Gantt Code
+
+```bash
+POST /api/gantt/preview
+```
+
+**Request:**
+
+```json
+{
+  "mermaid_code": "gantt\n    title Project\n    dateFormat YYYY-MM-DD\n    section Phase\n    Task :2025-01-01, 3d",
   "format": "svg"
 }
 ```
@@ -257,6 +338,7 @@ GET /health
 ```
 
 **Response:**
+
 ```json
 {
   "status": "ok",
@@ -272,16 +354,20 @@ Flowgen/
 │   ├── controller/          # API endpoints
 │   │   ├── diagram_controller.py
 │   │   ├── wbs_controller.py
+│   │   ├── gantt_controller.py
 │   │   └── health_controller.py
 │   ├── services/            # Business logic
 │   │   ├── diagram_service.py
 │   │   ├── wbs_service.py
+│   │   ├── gantt_service.py
 │   │   ├── llm_service.py
 │   │   ├── render_service.py (Graphviz)
-│   │   └── plantuml_service.py (PlantUML)
+│   │   ├── plantuml_service.py (PlantUML)
+│   │   └── mermaid_service.py (Mermaid)
 │   ├── schemas/             # Pydantic models
 │   │   ├── diagram_schema.py
 │   │   ├── wbs_schema.py
+│   │   ├── gantt_schema.py
 │   │   └── common_schema.py
 │   ├── middleware/          # Request/response middleware
 │   ├── core/                # Configuration & exceptions
@@ -294,6 +380,7 @@ Flowgen/
 │   └── integration/         # Integration tests
 ├── requirements.txt         # Python dependencies
 ├── pyproject.toml          # Project metadata
+├── GANTT_INTEGRATION.md    # Gantt integration guide
 └── README.md               # This file
 ```
 
@@ -312,58 +399,82 @@ pytest tests/unit/test_render_service.py -v
 
 ## 🔐 Environment Variables
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `LLM_PROVIDER` | LLM provider: `openai`, `nvidia`, or `gemini` | `openai` | ✅ |
-| `OPENAI_API_KEY` | OpenAI API key | - | If using OpenAI |
-| `OPENAI_MODEL` | OpenAI model name | `gpt-4` | If using OpenAI |
-| `NVIDIA_API_KEY` | NVIDIA NIM API key | - | If using NVIDIA |
-| `NVIDIA_MODEL` | NVIDIA model name | `qwen/qwen3-next-80b-a3b-instruct` | If using NVIDIA |
-| `GOOGLE_API_KEY` | Google Gemini API key | - | If using Gemini |
-| `GEMINI_MODEL` | Gemini model name | `gemini-pro` | If using Gemini |
-| `HOST` | Server host | `0.0.0.0` | ❌ |
-| `PORT` | Server port | `8000` | ❌ |
-| `LOG_LEVEL` | Logging level | `INFO` | ❌ |
-| `MAX_PROMPT_LENGTH` | Max prompt characters | `2000` | ❌ |
-| `MAX_DOT_LENGTH` | Max DOT code characters | `50000` | ❌ |
-| `MAX_PLANTUML_LENGTH` | Max PlantUML code characters | `50000` | ❌ |
-| `MAX_TOKENS` | Max LLM tokens | `1024` | ❌ |
-| `PLANTUML_SERVER_URL` | PlantUML server URL | `https://www.plantuml.com/plantuml` | ❌ |
-| `CORS_ORIGINS` | Allowed CORS origins (comma-separated) | `http://localhost:8000,...` | ❌ |
+| Variable              | Description                                   | Default                             | Required        |
+| --------------------- | --------------------------------------------- | ----------------------------------- | --------------- |
+| `LLM_PROVIDER`        | LLM provider: `openai`, `nvidia`, or `gemini` | `openai`                            | ✅              |
+| `OPENAI_API_KEY`      | OpenAI API key                                | -                                   | If using OpenAI |
+| `OPENAI_MODEL`        | OpenAI model name                             | `gpt-4`                             | If using OpenAI |
+| `NVIDIA_API_KEY`      | NVIDIA NIM API key                            | -                                   | If using NVIDIA |
+| `NVIDIA_MODEL`        | NVIDIA model name                             | `qwen/qwen3-next-80b-a3b-instruct`  | If using NVIDIA |
+| `GOOGLE_API_KEY`      | Google Gemini API key                         | -                                   | If using Gemini |
+| `GEMINI_MODEL`        | Gemini model name                             | `gemini-pro`                        | If using Gemini |
+| `HOST`                | Server host                                   | `0.0.0.0`                           | ❌              |
+| `PORT`                | Server port                                   | `8000`                              | ❌              |
+| `LOG_LEVEL`           | Logging level                                 | `INFO`                              | ❌              |
+| `MAX_PROMPT_LENGTH`   | Max prompt characters                         | `2000`                              | ❌              |
+| `MAX_DOT_LENGTH`      | Max DOT code characters                       | `50000`                             | ❌              |
+| `MAX_PLANTUML_LENGTH` | Max PlantUML code characters                  | `50000`                             | ❌              |
+| `MAX_TOKENS`          | Max LLM tokens                                | `1024`                              | ❌              |
+| `PLANTUML_SERVER_URL` | PlantUML server URL                           | `https://www.plantuml.com/plantuml` | ❌              |
+| `CORS_ORIGINS`        | Allowed CORS origins (comma-separated)        | `http://localhost:8000,...`         | ❌              |
 
 ## 💡 Example Prompts
 
 ### Diagrams (Graphviz)
 
 **Flowcharts:**
+
 - "Draw a flowchart for user registration with email verification"
 - "Create a decision tree for customer support ticket routing"
 
 **Network Diagrams:**
+
 - "Show a cloud architecture with load balancer, app servers, and Redis cache"
 - "Design a microservices topology with API gateway and message queue"
 
 **Class Diagrams:**
+
 - "Create a class diagram for a blogging platform with User, Post, and Comment"
 - "Design an e-commerce system with Product, Order, and Payment classes"
 
 **State Machines:**
+
 - "Draw a state machine for order lifecycle from cart to delivered"
 - "Show payment states with approval and rejection flows"
 
 ### WBS (PlantUML)
 
 **Software Projects:**
+
 - "Create a WBS for developing a SaaS application with MVP and scaling phases"
 - "Break down a mobile app project with iOS and Android development"
 
 **Business Projects:**
+
 - "Create a WBS for launching a marketing campaign across multiple channels"
 - "Design a product launch breakdown with market research, development, and go-to-market"
 
 **Research Projects:**
+
 - "Create a WBS for a PhD research project with literature review, experiments, and thesis"
 - "Break down a data science project with data collection, analysis, and visualization"
+
+### Gantt Charts (Mermaid)
+
+**Software Projects:**
+
+- "Create a timeline for building a web app with 2 weeks planning, 6 weeks development, 2 weeks testing"
+- "Schedule a mobile app release with parallel iOS and Android development tracks"
+
+**Marketing Campaigns:**
+
+- "Create a 3-month campaign timeline with research, content creation, launch, and analysis phases"
+- "Schedule a product launch with pre-launch activities, launch day, and post-launch monitoring"
+
+**Event Planning:**
+
+- "Create a timeline for organizing a conference with 6 months of planning and preparation"
+- "Schedule a wedding with venue booking, vendor selection, and final preparations"
 
 ## 🐛 Troubleshooting
 
@@ -377,7 +488,8 @@ pytest tests/unit/test_render_service.py -v
 
 **Error:** `Failed to connect to PlantUML server`
 
-**Solution:** 
+**Solution:**
+
 - Check your internet connection
 - Verify PlantUML server is accessible: https://www.plantuml.com/plantuml
 - Try changing `PLANTUML_SERVER_URL` in .env
@@ -388,6 +500,7 @@ pytest tests/unit/test_render_service.py -v
 **Error:** `Failed to generate code`
 
 **Solution:**
+
 - Verify API key is correct and active
 - Check you have API credits/access
 - Ensure `LLM_PROVIDER` matches your API key (openai/nvidia/gemini)
@@ -399,6 +512,7 @@ pytest tests/unit/test_render_service.py -v
 **Error:** `Address already in use`
 
 **Solution:**
+
 ```bash
 # Find process using port 8000
 lsof -i :8000  # macOS/Linux

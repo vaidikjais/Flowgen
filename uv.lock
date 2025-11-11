@@ -285,57 +285,6 @@ wheels = [
 ]
 
 [[package]]
-name = "diagramgpt"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "fastapi", extra = ["standard"] },
-    { name = "graphviz" },
-    { name = "langchain" },
-    { name = "langchain-core" },
-    { name = "langchain-google-genai" },
-    { name = "langchain-nvidia-ai-endpoints" },
-    { name = "langchain-openai" },
-    { name = "openai" },
-    { name = "pydantic" },
-    { name = "pydantic-settings" },
-    { name = "python-dotenv" },
-    { name = "python-multipart" },
-    { name = "uvicorn", extra = ["standard"] },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "httpx" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "fastapi", extras = ["standard"], specifier = ">=0.109.0" },
-    { name = "graphviz", specifier = ">=0.20.1" },
-    { name = "langchain", specifier = ">=0.1.0" },
-    { name = "langchain-core", specifier = ">=0.1.10" },
-    { name = "langchain-google-genai", specifier = ">=0.0.5" },
-    { name = "langchain-nvidia-ai-endpoints", specifier = ">=0.0.11" },
-    { name = "langchain-openai", specifier = ">=0.0.2" },
-    { name = "openai", specifier = ">=1.10.0" },
-    { name = "pydantic", specifier = ">=2.5.3" },
-    { name = "pydantic-settings", specifier = ">=2.1.0" },
-    { name = "python-dotenv", specifier = ">=1.0.0" },
-    { name = "python-multipart", specifier = ">=0.0.6" },
-    { name = "uvicorn", extras = ["standard"], specifier = ">=0.27.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "httpx", specifier = ">=0.26.0" },
-    { name = "pytest", specifier = ">=7.4.4" },
-    { name = "pytest-asyncio", specifier = ">=0.23.3" },
-]
-
-[[package]]
 name = "distro"
 version = "1.9.0"
 source = { registry = "https://pypi.org/simple" }
@@ -436,6 +385,59 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/bb/29/745f7d30d47fe0f251d3ad3dc2978a23141917661998763bebb6da007eb1/filetype-1.2.0.tar.gz", hash = "sha256:66b56cd6474bf41d8c54660347d37afcc3f7d1970648de365c102ef77548aadb", size = 998020, upload-time = "2022-11-02T17:34:04.141Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/18/79/1b8fa1bb3568781e84c9200f951c735f3f157429f44be0495da55894d620/filetype-1.2.0-py2.py3-none-any.whl", hash = "sha256:7ce71b6880181241cf7ac8697a2f1eb6a8bd9b429f7ad6d27b8db9ba5f1c2d25", size = 19970, upload-time = "2022-11-02T17:34:01.425Z" },
+]
+
+[[package]]
+name = "flowgen"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "fastapi", extra = ["standard"] },
+    { name = "graphviz" },
+    { name = "langchain" },
+    { name = "langchain-core" },
+    { name = "langchain-google-genai" },
+    { name = "langchain-nvidia-ai-endpoints" },
+    { name = "langchain-openai" },
+    { name = "mermaid-py" },
+    { name = "openai" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "python-dotenv" },
+    { name = "python-multipart" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "httpx" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", extras = ["standard"], specifier = ">=0.109.0" },
+    { name = "graphviz", specifier = ">=0.20.1" },
+    { name = "langchain", specifier = ">=0.1.0" },
+    { name = "langchain-core", specifier = ">=0.1.10" },
+    { name = "langchain-google-genai", specifier = ">=0.0.5" },
+    { name = "langchain-nvidia-ai-endpoints", specifier = ">=0.0.11" },
+    { name = "langchain-openai", specifier = ">=0.0.2" },
+    { name = "mermaid-py", specifier = ">=0.8.0" },
+    { name = "openai", specifier = ">=1.10.0" },
+    { name = "pydantic", specifier = ">=2.5.3" },
+    { name = "pydantic-settings", specifier = ">=2.1.0" },
+    { name = "python-dotenv", specifier = ">=1.0.0" },
+    { name = "python-multipart", specifier = ">=0.0.6" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.27.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "httpx", specifier = ">=0.26.0" },
+    { name = "pytest", specifier = ">=7.4.4" },
+    { name = "pytest-asyncio", specifier = ">=0.23.3" },
 ]
 
 [[package]]
@@ -1142,6 +1144,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d6/54/cfe61301667036ec958cb99bd3efefba235e65cdeb9c84d24a8293ba1d90/mdurl-0.1.2.tar.gz", hash = "sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba", size = 8729, upload-time = "2022-08-14T12:40:10.846Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b3/38/89ba8ad64ae25be8de66a6d463314cf1eb366222074cfda9ee839c56a4b4/mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8", size = 9979, upload-time = "2022-08-14T12:40:09.779Z" },
+]
+
+[[package]]
+name = "mermaid-py"
+version = "0.8.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/cb/b6/b5973f5b4b726f8b09e6558f459f0d6b70ee00206aacd873c8ed972a16cf/mermaid_py-0.8.0.tar.gz", hash = "sha256:8ba7853f88c09ebf9c2d355c0ebd1e272e877c9568c10612ae9d0f57245608ef", size = 21229, upload-time = "2025-05-12T14:42:26.354Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/86/0e/fbcc38fef8ff71e5df09d9d629e8b620fe974709664b81da2774b6debfe2/mermaid_py-0.8.0-py3-none-any.whl", hash = "sha256:dab0463ffe67fb3f13f0058cf5c0c2fa2685136cdc7e4ae3067d8b9d9c9e378a", size = 31741, upload-time = "2025-05-12T14:42:25.04Z" },
 ]
 
 [[package]]

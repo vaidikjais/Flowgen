@@ -1,579 +1,709 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Flowgen - AI Diagram Generator</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
+
+      header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+
+      header p {
+        font-size: 1.1em;
+        opacity: 0.9;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 10px;
+        padding: 20px 30px 0 30px;
+        background: white;
+      }
+
+      .tab {
+        padding: 12px 24px;
+        background: #f8f9fa;
+        border: none;
+        border-radius: 8px 8px 0 0;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        color: #666;
+      }
+
+      .tab:hover {
+        background: #e9ecef;
+      }
+
+      .tab.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        padding: 30px;
+      }
+
+      .panel {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+      }
+
+      .panel h2 {
+        color: #333;
+        margin-bottom: 15px;
+        font-size: 1.3em;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        color: #555;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        font-family: inherit;
+        font-size: 14px;
+        resize: vertical;
+        transition: border-color 0.3s;
+      }
+
+      textarea:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      select {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        font-family: inherit;
+        font-size: 14px;
+        background: white;
+        cursor: pointer;
+        transition: border-color 0.3s;
+      }
+
+      select:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      button {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      }
+
+      button:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .output-container {
+        background: white;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        padding: 20px;
+        min-height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: auto;
+      }
+
+      .output-container svg {
+        max-width: 100%;
+        height: auto;
+      }
+
+      .output-container img {
+        max-width: 100%;
+        height: auto;
+      }
+
+      .placeholder {
+        color: #999;
+        text-align: center;
+        font-size: 1.1em;
+      }
+
+      .error {
+        color: #dc3545;
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        padding: 12px;
+        border-radius: 6px;
+        margin-top: 10px;
+      }
+
+      .success {
+        color: #155724;
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        padding: 12px;
+        border-radius: 6px;
+        margin-top: 10px;
+      }
+
+      .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
         }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-        }
-        
-        header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        
-        header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        
-        header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-        
-        .tabs {
-            display: flex;
-            gap: 10px;
-            padding: 20px 30px 0 30px;
-            background: white;
-        }
-        
-        .tab {
-            padding: 12px 24px;
-            background: #f8f9fa;
-            border: none;
-            border-radius: 8px 8px 0 0;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            color: #666;
-        }
-        
-        .tab:hover {
-            background: #e9ecef;
-        }
-        
-        .tab.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
+      }
+
+      .examples {
+        margin-top: 20px;
+        padding: 15px;
+        background: white;
+        border-radius: 6px;
+      }
+
+      .examples h3 {
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+
+      .example-btn {
+        display: inline-block;
+        padding: 8px 12px;
+        margin: 5px 5px 5px 0;
+        background: #e9ecef;
+        color: #495057;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .example-btn:hover {
+        background: #dee2e6;
+      }
+
+      @media (max-width: 768px) {
         .content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            padding: 30px;
+          grid-template-columns: 1fr;
         }
-        
-        .panel {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 20px;
+
+        header h1 {
+          font-size: 1.8em;
         }
-        
-        .panel h2 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 1.3em;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            color: #555;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        
-        textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            font-family: inherit;
-            font-size: 14px;
-            resize: vertical;
-            transition: border-color 0.3s;
-        }
-        
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        .controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            font-family: inherit;
-            font-size: 14px;
-            background: white;
-            cursor: pointer;
-            transition: border-color 0.3s;
-        }
-        
-        select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        button {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        
-        button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-        
-        button:active:not(:disabled) {
-            transform: translateY(0);
-        }
-        
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        
-        .output-container {
-            background: white;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            padding: 20px;
-            min-height: 400px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: auto;
-        }
-        
-        .output-container svg {
-            max-width: 100%;
-            height: auto;
-        }
-        
-        .output-container img {
-            max-width: 100%;
-            height: auto;
-        }
-        
-        .placeholder {
-            color: #999;
-            text-align: center;
-            font-size: 1.1em;
-        }
-        
-        .error {
-            color: #dc3545;
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            padding: 12px;
-            border-radius: 6px;
-            margin-top: 10px;
-        }
-        
-        .success {
-            color: #155724;
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            padding: 12px;
-            border-radius: 6px;
-            margin-top: 10px;
-        }
-        
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .examples {
-            margin-top: 20px;
-            padding: 15px;
-            background: white;
-            border-radius: 6px;
-        }
-        
-        .examples h3 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 1em;
-        }
-        
-        .example-btn {
-            display: inline-block;
-            padding: 8px 12px;
-            margin: 5px 5px 5px 0;
-            background: #e9ecef;
-            color: #495057;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        
-        .example-btn:hover {
-            background: #dee2e6;
-        }
-        
-        @media (max-width: 768px) {
-            .content {
-                grid-template-columns: 1fr;
-            }
-            
-            header h1 {
-                font-size: 1.8em;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <header>
-            <h1>🎨 Flowgen</h1>
-            <p>Generate beautiful diagrams from natural language using AI</p>
-        </header>
-        
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('diagram')">📊 Diagram</button>
-            <button class="tab" onclick="switchTab('wbs')">📋 WBS</button>
-        </div>
-        
-        <div class="content">
-            <!-- Input Panel -->
-            <div class="panel">
-                <h2>📝 Input</h2>
-                
-                <div class="form-group">
-                    <label for="prompt" id="promptLabel">Describe your diagram:</label>
-                    <textarea 
-                        id="prompt" 
-                        rows="8" 
-                        placeholder="Example: Draw a flowchart for user authentication with login, password validation, and success/error states"
-                    ></textarea>
-                </div>
-                
-                <div class="controls">
-                    <div class="form-group">
-                        <label for="format">Format:</label>
-                        <select id="format">
-                            <option value="svg">SVG (Vector)</option>
-                            <option value="png">PNG (Raster)</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group" id="layoutGroup">
-                        <label for="layout">Layout Engine:</label>
-                        <select id="layout">
-                            <option value="dot">dot (Hierarchical)</option>
-                            <option value="neato">neato (Spring)</option>
-                            <option value="fdp">fdp (Force-directed)</option>
-                            <option value="sfdp">sfdp (Large graphs)</option>
-                            <option value="twopi">twopi (Radial)</option>
-                            <option value="circo">circo (Circular)</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <button id="generateBtn" onclick="generate()">
-                    Generate Diagram
-                </button>
-                
-                <div id="message"></div>
-                
-                <div class="examples" id="examples">
-                    <h3>💡 Try these examples:</h3>
-                    <div id="exampleButtons"></div>
-                </div>
+      <header>
+        <h1>🎨 Flowgen</h1>
+        <p>Generate beautiful diagrams from natural language using AI</p>
+      </header>
+
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('diagram')">
+          📊 Diagram
+        </button>
+        <button class="tab" onclick="switchTab('wbs')">📋 WBS</button>
+        <button class="tab" onclick="switchTab('gantt')">📅 Gantt Chart</button>
+      </div>
+
+      <div class="content">
+        <!-- Input Panel -->
+        <div class="panel">
+          <h2>📝 Input</h2>
+
+          <div class="form-group">
+            <label for="prompt" id="promptLabel">Describe your diagram:</label>
+            <textarea
+              id="prompt"
+              rows="8"
+              placeholder="Example: Draw a flowchart for user authentication with login, password validation, and success/error states"
+            ></textarea>
+          </div>
+
+          <div class="controls">
+            <div class="form-group">
+              <label for="format">Format:</label>
+              <select id="format">
+                <option value="svg">SVG (Vector)</option>
+                <option value="png">PNG (Raster)</option>
+              </select>
             </div>
-            
-            <!-- Output Panel -->
-            <div class="panel">
-                <h2>🖼️ Output</h2>
-                <div id="output" class="output-container">
-                    <div class="placeholder">Your diagram will appear here...</div>
-                </div>
+
+            <div class="form-group" id="layoutGroup">
+              <label for="layout">Layout Engine:</label>
+              <select id="layout">
+                <option value="dot">dot (Hierarchical)</option>
+                <option value="neato">neato (Spring)</option>
+                <option value="fdp">fdp (Force-directed)</option>
+                <option value="sfdp">sfdp (Large graphs)</option>
+                <option value="twopi">twopi (Radial)</option>
+                <option value="circo">circo (Circular)</option>
+              </select>
             </div>
+          </div>
+
+          <button id="generateBtn" onclick="generate()">
+            Generate Diagram
+          </button>
+
+          <div id="message"></div>
+
+          <div class="examples" id="examples">
+            <h3>💡 Try these examples:</h3>
+            <div id="exampleButtons"></div>
+          </div>
         </div>
+
+        <!-- Output Panel -->
+        <div class="panel">
+          <h2>🖼️ Output</h2>
+          <div id="output" class="output-container">
+            <div class="placeholder">Your diagram will appear here...</div>
+          </div>
+        </div>
+      </div>
     </div>
-    
+
     <script>
-        let currentMode = 'diagram'; // 'diagram' or 'wbs'
-        
-        const diagramExamples = {
-            flowchart: {
-                label: "Login Flowchart",
-                text: "Draw a flowchart for user login that shows: start, enter username and password, validate credentials, if valid show dashboard, if invalid show error and retry"
-            },
-            network: {
-                label: "Network Topology",
-                text: "Create a network diagram showing a router connected to a firewall, which connects to a web server, app server, and database server"
-            },
-            class: {
-                label: "Class Diagram",
-                text: "Design a class diagram for an e-commerce system with classes: User, Product, Order, ShoppingCart, and Payment"
-            },
-            process: {
-                label: "Business Process",
-                text: "Show a business process for order fulfillment: receive order, check inventory, if available process payment and ship, if unavailable notify customer"
-            }
-        };
-        
-        const wbsExamples = {
-            webapp: {
-                label: "Web App Project",
-                text: "Create a WBS for building a web application with planning, design, development, testing, and deployment phases"
-            },
-            mobile: {
-                label: "Mobile App",
-                text: "Create a WBS for a mobile app development project with user authentication, main features, payment integration, and app store deployment"
-            },
-            marketing: {
-                label: "Marketing Campaign",
-                text: "Create a WBS for launching a product marketing campaign with market research, content creation, social media, email marketing, and analytics"
-            },
-            research: {
-                label: "Research Project",
-                text: "Create a WBS for a research project with literature review, data collection, analysis, paper writing, and publication phases"
-            }
-        };
-        
-        function switchTab(mode) {
-            currentMode = mode;
-            
-            // Update tab buttons
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            // Update UI based on mode
-            if (mode === 'diagram') {
-                document.getElementById('promptLabel').textContent = 'Describe your diagram:';
-                document.getElementById('prompt').placeholder = 'Example: Draw a flowchart for user authentication with login, password validation, and success/error states';
-                document.getElementById('generateBtn').textContent = 'Generate Diagram';
-                document.getElementById('layoutGroup').style.display = 'block';
-            } else if (mode === 'wbs') {
-                document.getElementById('promptLabel').textContent = 'Describe your project structure:';
-                document.getElementById('prompt').placeholder = 'Example: Create a WBS for a website redesign project with planning, design, development, and deployment phases';
-                document.getElementById('generateBtn').textContent = 'Generate WBS';
-                document.getElementById('layoutGroup').style.display = 'none';
-            }
-            
-            // Update examples
-            updateExamples();
-            
-            // Clear previous output
-            document.getElementById('output').innerHTML = '<div class="placeholder">Your ' + mode + ' will appear here...</div>';
-            document.getElementById('message').innerHTML = '';
-            document.getElementById('prompt').value = '';
+      // API Configuration
+      const API_BASE_URL = "http://localhost:8000";
+
+      let currentMode = "diagram"; // 'diagram' or 'wbs'
+
+      const diagramExamples = {
+        flowchart: {
+          label: "Login Flowchart",
+          text: "Draw a flowchart for user login that shows: start, enter username and password, validate credentials, if valid show dashboard, if invalid show error and retry",
+        },
+        network: {
+          label: "Network Topology",
+          text: "Create a network diagram showing a router connected to a firewall, which connects to a web server, app server, and database server",
+        },
+        class: {
+          label: "Class Diagram",
+          text: "Design a class diagram for an e-commerce system with classes: User, Product, Order, ShoppingCart, and Payment",
+        },
+        process: {
+          label: "Business Process",
+          text: "Show a business process for order fulfillment: receive order, check inventory, if available process payment and ship, if unavailable notify customer",
+        },
+      };
+
+      const wbsExamples = {
+        webapp: {
+          label: "Web App Project",
+          text: "Create a WBS for building a web application with planning, design, development, testing, and deployment phases",
+        },
+        mobile: {
+          label: "Mobile App",
+          text: "Create a WBS for a mobile app development project with user authentication, main features, payment integration, and app store deployment",
+        },
+        marketing: {
+          label: "Marketing Campaign",
+          text: "Create a WBS for launching a product marketing campaign with market research, content creation, social media, email marketing, and analytics",
+        },
+        research: {
+          label: "Research Project",
+          text: "Create a WBS for a research project with literature review, data collection, analysis, paper writing, and publication phases",
+        },
+      };
+
+      const ganttExamples = {
+        webapp: {
+          label: "Web Development",
+          text: "Create a Gantt chart for a web application project with Planning (5 days), Design (7 days), Backend Development (10 days), Frontend Development (10 days), Testing (5 days), and Deployment (3 days)",
+        },
+        mobile: {
+          label: "Mobile App Launch",
+          text: "Create a Gantt chart for mobile app development with Requirements Analysis (3 days), UI/UX Design (5 days), Development (15 days), Testing (7 days), Beta Release (5 days), and App Store Submission (3 days)",
+        },
+        marketing: {
+          label: "Marketing Campaign",
+          text: "Create a Gantt chart for a product launch campaign with Market Research (7 days), Content Creation (10 days), Social Media Setup (5 days), Email Campaign (7 days), and Analytics Review (5 days)",
+        },
+        construction: {
+          label: "Construction Project",
+          text: "Create a Gantt chart for a building construction with Site Preparation (10 days), Foundation (15 days), Framing (20 days), Electrical/Plumbing (15 days), Interior Finish (20 days), and Final Inspection (5 days)",
+        },
+      };
+
+      function switchTab(mode) {
+        currentMode = mode;
+
+        // Update tab buttons
+        document
+          .querySelectorAll(".tab")
+          .forEach((tab) => tab.classList.remove("active"));
+        event.target.classList.add("active");
+
+        // Update UI based on mode
+        if (mode === "diagram") {
+          document.getElementById("promptLabel").textContent =
+            "Describe your diagram:";
+          document.getElementById("prompt").placeholder =
+            "Example: Draw a flowchart for user authentication with login, password validation, and success/error states";
+          document.getElementById("generateBtn").textContent =
+            "Generate Diagram";
+          document.getElementById("layoutGroup").style.display = "block";
+        } else if (mode === "wbs") {
+          document.getElementById("promptLabel").textContent =
+            "Describe your project structure:";
+          document.getElementById("prompt").placeholder =
+            "Example: Create a WBS for a website redesign project with planning, design, development, and deployment phases";
+          document.getElementById("generateBtn").textContent = "Generate WBS";
+          document.getElementById("layoutGroup").style.display = "none";
+        } else if (mode === "gantt") {
+          document.getElementById("promptLabel").textContent =
+            "Describe your project timeline:";
+          document.getElementById("prompt").placeholder =
+            "Example: Create a Gantt chart for a mobile app project with design (5 days), development (15 days), testing (7 days), and deployment (3 days)";
+          document.getElementById("generateBtn").textContent =
+            "Generate Gantt Chart";
+          document.getElementById("layoutGroup").style.display = "none";
         }
-        
-        function updateExamples() {
-            const exampleButtons = document.getElementById('exampleButtons');
-            exampleButtons.innerHTML = '';
-            
-            const examples = currentMode === 'diagram' ? diagramExamples : wbsExamples;
-            
-            for (const [key, example] of Object.entries(examples)) {
-                const btn = document.createElement('span');
-                btn.className = 'example-btn';
-                btn.textContent = example.label;
-                btn.onclick = () => setExample(example.text);
-                exampleButtons.appendChild(btn);
-            }
-        }
-        
-        function setExample(text) {
-            document.getElementById('prompt').value = text;
-        }
-        
-        // Initialize examples
+
+        // Update examples
         updateExamples();
-        
-        async function generate() {
-            if (currentMode === 'diagram') {
-                await generateDiagram();
-            } else if (currentMode === 'wbs') {
-                await generateWBS();
-            }
+
+        // Clear previous output
+        document.getElementById("output").innerHTML =
+          '<div class="placeholder">Your ' +
+          mode +
+          " will appear here...</div>";
+        document.getElementById("message").innerHTML = "";
+        document.getElementById("prompt").value = "";
+      }
+
+      function updateExamples() {
+        const exampleButtons = document.getElementById("exampleButtons");
+        exampleButtons.innerHTML = "";
+
+        const examples =
+          currentMode === "diagram"
+            ? diagramExamples
+            : currentMode === "wbs"
+            ? wbsExamples
+            : ganttExamples;
+
+        for (const [key, example] of Object.entries(examples)) {
+          const btn = document.createElement("span");
+          btn.className = "example-btn";
+          btn.textContent = example.label;
+          btn.onclick = () => setExample(example.text);
+          exampleButtons.appendChild(btn);
         }
-        
-        async function generateDiagram() {
-            const prompt = document.getElementById('prompt').value.trim();
-            const format = document.getElementById('format').value;
-            const layout = document.getElementById('layout').value;
-            const output = document.getElementById('output');
-            const message = document.getElementById('message');
-            const btn = document.getElementById('generateBtn');
-            
-            // Clear previous messages
-            message.innerHTML = '';
-            
-            // Validate input
-            if (!prompt) {
-                message.innerHTML = '<div class="error">Please enter a diagram description.</div>';
-                return;
-            }
-            
-            // Show loading state
-            btn.disabled = true;
-            btn.innerHTML = '<span class="loading"></span> Generating...';
-            output.innerHTML = '<div class="placeholder">Generating your diagram...</div>';
-            
-            try {
-                // Call the API
-                const response = await fetch('/api/diagram/generate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        prompt: prompt,
-                        format: format,
-                        layout: layout
-                    })
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.detail || 'Failed to generate diagram');
-                }
-                
-                // Handle response based on format
-                if (format === 'svg') {
-                    const svgText = await response.text();
-                    output.innerHTML = svgText;
-                    message.innerHTML = '<div class="success">✓ Diagram generated successfully!</div>';
-                } else if (format === 'png') {
-                    const blob = await response.blob();
-                    const url = URL.createObjectURL(blob);
-                    output.innerHTML = `<img src="${url}" alt="Generated diagram">`;
-                    message.innerHTML = '<div class="success">✓ Diagram generated successfully!</div>';
-                }
-                
-            } catch (error) {
-                console.error('Error:', error);
-                output.innerHTML = '<div class="placeholder">Failed to generate diagram</div>';
-                message.innerHTML = `<div class="error">Error: ${error.message}</div>`;
-            } finally {
-                // Reset button
-                btn.disabled = false;
-                btn.innerHTML = 'Generate Diagram';
-            }
+      }
+
+      function setExample(text) {
+        document.getElementById("prompt").value = text;
+      }
+
+      // Initialize examples
+      updateExamples();
+
+      async function generate() {
+        if (currentMode === "diagram") {
+          await generateDiagram();
+        } else if (currentMode === "wbs") {
+          await generateWBS();
+        } else if (currentMode === "gantt") {
+          await generateGantt();
         }
-        
-        async function generateWBS() {
-            const prompt = document.getElementById('prompt').value.trim();
-            const format = document.getElementById('format').value;
-            const output = document.getElementById('output');
-            const message = document.getElementById('message');
-            const btn = document.getElementById('generateBtn');
-            
-            // Clear previous messages
-            message.innerHTML = '';
-            
-            // Validate input
-            if (!prompt) {
-                message.innerHTML = '<div class="error">Please enter a project description.</div>';
-                return;
-            }
-            
-            // Show loading state
-            btn.disabled = true;
-            btn.innerHTML = '<span class="loading"></span> Generating...';
-            output.innerHTML = '<div class="placeholder">Generating your WBS...</div>';
-            
-            try {
-                // Call the WBS API
-                const response = await fetch('/api/wbs/generate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        prompt: prompt,
-                        format: format
-                    })
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.detail || 'Failed to generate WBS');
-                }
-                
-                // Handle response based on format
-                if (format === 'svg') {
-                    const svgText = await response.text();
-                    output.innerHTML = svgText;
-                    message.innerHTML = '<div class="success">✓ WBS generated successfully!</div>';
-                } else if (format === 'png') {
-                    const blob = await response.blob();
-                    const url = URL.createObjectURL(blob);
-                    output.innerHTML = `<img src="${url}" alt="Generated WBS">`;
-                    message.innerHTML = '<div class="success">✓ WBS generated successfully!</div>';
-                }
-                
-            } catch (error) {
-                console.error('Error:', error);
-                output.innerHTML = '<div class="placeholder">Failed to generate WBS</div>';
-                message.innerHTML = `<div class="error">Error: ${error.message}</div>`;
-            } finally {
-                // Reset button
-                btn.disabled = false;
-                btn.innerHTML = 'Generate WBS';
-            }
+      }
+
+      async function generateDiagram() {
+        const prompt = document.getElementById("prompt").value.trim();
+        const format = document.getElementById("format").value;
+        const layout = document.getElementById("layout").value;
+        const output = document.getElementById("output");
+        const message = document.getElementById("message");
+        const btn = document.getElementById("generateBtn");
+
+        // Clear previous messages
+        message.innerHTML = "";
+
+        // Validate input
+        if (!prompt) {
+          message.innerHTML =
+            '<div class="error">Please enter a diagram description.</div>';
+          return;
         }
-        
-        // Allow Enter key to submit (with Shift+Enter for new line)
-        document.getElementById('prompt').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                generate();
-            }
+
+        // Show loading state
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> Generating...';
+        output.innerHTML =
+          '<div class="placeholder">Generating your diagram...</div>';
+
+        try {
+          // Call the API
+          const response = await fetch(`${API_BASE_URL}/api/diagram/generate`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              prompt: prompt,
+              format: format,
+              layout: layout,
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || "Failed to generate diagram");
+          }
+
+          // Handle response based on format
+          if (format === "svg") {
+            const svgText = await response.text();
+            output.innerHTML = svgText;
+            message.innerHTML =
+              '<div class="success">✓ Diagram generated successfully!</div>';
+          } else if (format === "png") {
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            output.innerHTML = `<img src="${url}" alt="Generated diagram">`;
+            message.innerHTML =
+              '<div class="success">✓ Diagram generated successfully!</div>';
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          output.innerHTML =
+            '<div class="placeholder">Failed to generate diagram</div>';
+          message.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+        } finally {
+          // Reset button
+          btn.disabled = false;
+          btn.innerHTML = "Generate Diagram";
+        }
+      }
+
+      async function generateWBS() {
+        const prompt = document.getElementById("prompt").value.trim();
+        const format = document.getElementById("format").value;
+        const output = document.getElementById("output");
+        const message = document.getElementById("message");
+        const btn = document.getElementById("generateBtn");
+
+        // Clear previous messages
+        message.innerHTML = "";
+
+        // Validate input
+        if (!prompt) {
+          message.innerHTML =
+            '<div class="error">Please enter a project description.</div>';
+          return;
+        }
+
+        // Show loading state
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> Generating...';
+        output.innerHTML =
+          '<div class="placeholder">Generating your WBS...</div>';
+
+        try {
+          // Call the WBS API
+          const response = await fetch(`${API_BASE_URL}/api/wbs/generate`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              prompt: prompt,
+              format: format,
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || "Failed to generate WBS");
+          }
+
+          // Handle response based on format
+          if (format === "svg") {
+            const svgText = await response.text();
+            output.innerHTML = svgText;
+            message.innerHTML =
+              '<div class="success">✓ WBS generated successfully!</div>';
+          } else if (format === "png") {
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            output.innerHTML = `<img src="${url}" alt="Generated WBS">`;
+            message.innerHTML =
+              '<div class="success">✓ WBS generated successfully!</div>';
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          output.innerHTML =
+            '<div class="placeholder">Failed to generate WBS</div>';
+          message.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+        } finally {
+          // Reset button
+          btn.disabled = false;
+          btn.innerHTML = "Generate WBS";
+        }
+      }
+
+      async function generateGantt() {
+        const prompt = document.getElementById("prompt").value.trim();
+        const format = document.getElementById("format").value;
+        const output = document.getElementById("output");
+        const message = document.getElementById("message");
+        const btn = document.getElementById("generateBtn");
+
+        // Clear previous messages
+        message.innerHTML = "";
+
+        // Validate input
+        if (!prompt) {
+          message.innerHTML =
+            '<div class="error">Please enter a project timeline description.</div>';
+          return;
+        }
+
+        // Show loading state
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> Generating...';
+        output.innerHTML =
+          '<div class="placeholder">Generating your Gantt chart...</div>';
+
+        try {
+          // Call the Gantt API
+          const response = await fetch(`${API_BASE_URL}/api/gantt/generate`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              prompt: prompt,
+              format: format,
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(
+              errorData.detail || "Failed to generate Gantt chart"
+            );
+          }
+
+          // Handle response based on format
+          if (format === "svg") {
+            const svgText = await response.text();
+            output.innerHTML = svgText;
+            message.innerHTML =
+              '<div class="success">✓ Gantt chart generated successfully!</div>';
+          } else if (format === "png") {
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            output.innerHTML = `<img src="${url}" alt="Generated Gantt chart">`;
+            message.innerHTML =
+              '<div class="success">✓ Gantt chart generated successfully!</div>';
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          output.innerHTML =
+            '<div class="placeholder">Failed to generate Gantt chart</div>';
+          message.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+        } finally {
+          // Reset button
+          btn.disabled = false;
+          btn.innerHTML = "Generate Gantt Chart";
+        }
+      }
+
+      // Allow Enter key to submit (with Shift+Enter for new line)
+      document
+        .getElementById("prompt")
+        .addEventListener("keydown", function (e) {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            generate();
+          }
         });
     </script>
-</body>
+  </body>
 </html>
-
