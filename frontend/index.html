@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiagramGPT - AI Diagram Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+        
+        .panel {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .panel h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .output-container {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            padding: 20px;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: auto;
+        }
+        
+        .output-container svg {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .output-container img {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .placeholder {
+            color: #999;
+            text-align: center;
+            font-size: 1.1em;
+        }
+        
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+        
+        .success {
+            color: #155724;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .examples {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+        }
+        
+        .examples h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+        
+        .example-btn {
+            display: inline-block;
+            padding: 8px 12px;
+            margin: 5px 5px 5px 0;
+            background: #e9ecef;
+            color: #495057;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .example-btn:hover {
+            background: #dee2e6;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 DiagramGPT</h1>
+            <p>Generate beautiful diagrams from natural language using AI</p>
+        </header>
+        
+        <div class="content">
+            <!-- Input Panel -->
+            <div class="panel">
+                <h2>📝 Input</h2>
+                
+                <div class="form-group">
+                    <label for="prompt">Describe your diagram:</label>
+                    <textarea 
+                        id="prompt" 
+                        rows="8" 
+                        placeholder="Example: Draw a flowchart for user authentication with login, password validation, and success/error states"
+                    ></textarea>
+                </div>
+                
+                <div class="controls">
+                    <div class="form-group">
+                        <label for="format">Format:</label>
+                        <select id="format">
+                            <option value="svg">SVG (Vector)</option>
+                            <option value="png">PNG (Raster)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="layout">Layout Engine:</label>
+                        <select id="layout">
+                            <option value="dot">dot (Hierarchical)</option>
+                            <option value="neato">neato (Spring)</option>
+                            <option value="fdp">fdp (Force-directed)</option>
+                            <option value="sfdp">sfdp (Large graphs)</option>
+                            <option value="twopi">twopi (Radial)</option>
+                            <option value="circo">circo (Circular)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button id="generateBtn" onclick="generateDiagram()">
+                    Generate Diagram
+                </button>
+                
+                <div id="message"></div>
+                
+                <div class="examples">
+                    <h3>💡 Try these examples:</h3>
+                    <span class="example-btn" onclick="setExample('flowchart')">Login Flowchart</span>
+                    <span class="example-btn" onclick="setExample('network')">Network Topology</span>
+                    <span class="example-btn" onclick="setExample('class')">Class Diagram</span>
+                    <span class="example-btn" onclick="setExample('process')">Business Process</span>
+                </div>
+            </div>
+            
+            <!-- Output Panel -->
+            <div class="panel">
+                <h2>🖼️ Output</h2>
+                <div id="output" class="output-container">
+                    <div class="placeholder">Your diagram will appear here...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const examples = {
+            flowchart: "Draw a flowchart for user login that shows: start, enter username and password, validate credentials, if valid show dashboard, if invalid show error and retry",
+            network: "Create a network diagram showing a router connected to a firewall, which connects to a web server, app server, and database server",
+            class: "Design a class diagram for an e-commerce system with classes: User, Product, Order, ShoppingCart, and Payment",
+            process: "Show a business process for order fulfillment: receive order, check inventory, if available process payment and ship, if unavailable notify customer"
+        };
+        
+        function setExample(type) {
+            document.getElementById('prompt').value = examples[type];
+        }
+        
+        async function generateDiagram() {
+            const prompt = document.getElementById('prompt').value.trim();
+            const format = document.getElementById('format').value;
+            const layout = document.getElementById('layout').value;
+            const output = document.getElementById('output');
+            const message = document.getElementById('message');
+            const btn = document.getElementById('generateBtn');
+            
+            // Clear previous messages
+            message.innerHTML = '';
+            
+            // Validate input
+            if (!prompt) {
+                message.innerHTML = '<div class="error">Please enter a diagram description.</div>';
+                return;
+            }
+            
+            // Show loading state
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Generating...';
+            output.innerHTML = '<div class="placeholder">Generating your diagram...</div>';
+            
+            try {
+                // Call the API
+                const response = await fetch('/api/diagram/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        format: format,
+                        layout: layout
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to generate diagram');
+                }
+                
+                // Handle response based on format
+                if (format === 'svg') {
+                    const svgText = await response.text();
+                    output.innerHTML = svgText;
+                    message.innerHTML = '<div class="success">✓ Diagram generated successfully!</div>';
+                } else if (format === 'png') {
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    output.innerHTML = `<img src="${url}" alt="Generated diagram">`;
+                    message.innerHTML = '<div class="success">✓ Diagram generated successfully!</div>';
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                output.innerHTML = '<div class="placeholder">Failed to generate diagram</div>';
+                message.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            } finally {
+                // Reset button
+                btn.disabled = false;
+                btn.innerHTML = 'Generate Diagram';
+            }
+        }
+        
+        // Allow Enter key to submit (with Shift+Enter for new line)
+        document.getElementById('prompt').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                generateDiagram();
+            }
+        });
+    </script>
+</body>
+</html>
+
