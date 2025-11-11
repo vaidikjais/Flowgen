@@ -261,6 +261,204 @@ Now generate DOT code based on the user's request."""
         
         return dot_code
     
+    async def generate_wbs_code(
+        self,
+        prompt: str,
+        max_tokens: int = 1024,
+        max_retries: int = 3
+    ) -> Tuple[str, Optional[int], int]:
+        """
+        Generate PlantUML WBS code from a natural language prompt.
+        
+        Args:
+            prompt: Natural language description of the work breakdown structure
+            max_tokens: Maximum tokens for LLM response
+            max_retries: Number of retry attempts on transient errors
+            
+        Returns:
+            Tuple of (plantuml_code, tokens_used, latency_ms)
+            
+        Raises:
+            LLMError: If LLM call fails after retries
+        """
+        start_time = datetime.now(timezone.utc)
+        
+        if not self._use_llm:
+            plantuml_code = self._fallback_mock_wbs(prompt)
+            latency_ms = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
+            return plantuml_code, None, latency_ms
+        
+        # Try with retries and exponential backoff
+        for attempt in range(max_retries):
+            try:
+                response, tokens_used = await self._call_llm_wbs_async(prompt, max_tokens)
+                plantuml_code = self._extract_plantuml(response)
+                latency_ms = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
+                
+                logger.info(
+                    f"Successfully generated PlantUML WBS code "
+                    f"(tokens: {tokens_used}, latency: {latency_ms}ms)"
+                )
+                
+                return plantuml_code, tokens_used, latency_ms
+                
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
+                    logger.warning(
+                        f"LLM call failed (attempt {attempt + 1}/{max_retries}): {e}. "
+                        f"Retrying in {wait_time}s..."
+                    )
+                    await asyncio.sleep(wait_time)
+                else:
+                    latency_ms = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
+                    logger.error(f"LLM call failed after {max_retries} attempts: {e}")
+                    raise LLMError(
+                        f"Failed to generate PlantUML WBS code after {max_retries} attempts",
+                        detail=str(e)
+                    )
+    
+    async def _call_llm_wbs_async(
+        self,
+        prompt: str,
+        max_tokens: int
+    ) -> Tuple[str, Optional[int]]:
+        """
+        Call LLM API asynchronously for WBS generation.
+        
+        Args:
+            prompt: User prompt
+            max_tokens: Maximum tokens for response
+            
+        Returns:
+            Tuple of (response_text, tokens_used)
+        """
+        wbs_system_prompt = """You are an expert at creating Work Breakdown Structure (WBS) diagrams using PlantUML.
+
+Generate valid PlantUML WBS syntax based on the user's description.
+
+WBS Syntax Rules:
+- Start with @startwbs
+- End with @endwbs
+- Use * for root/level 1 items
+- Use ** for level 2 items
+- Use *** for level 3 items, etc.
+- Use + for additional items at the same level (optional)
+- Keep it hierarchical and organized
+- Use clear, concise labels
+
+Example:
+@startwbs
+* Project Name
+** Phase 1
+*** Task 1.1
+*** Task 1.2
+** Phase 2
+*** Task 2.1
+**** Subtask 2.1.1
+**** Subtask 2.1.2
+*** Task 2.2
+@endwbs
+
+Generate ONLY the PlantUML WBS code, no explanations or commentary."""
+
+        try:
+            # Prepare messages
+            messages = [
+                SystemMessage(content=wbs_system_prompt),
+                HumanMessage(content=prompt)
+            ]
+            
+            # Call LLM using LangChain's async invoke
+            response = await self.llm.ainvoke(messages)
+            
+            content = response.content
+            if not content:
+                raise LLMError("Empty response from LLM")
+            
+            # Extract token usage from response metadata
+            tokens_used = None
+            if hasattr(response, 'response_metadata'):
+                usage = response.response_metadata.get('token_usage', {})
+                tokens_used = usage.get('total_tokens')
+            
+            return content, tokens_used
+            
+        except Exception as e:
+            logger.error(f"LLM API error ({self.provider}): {e}")
+            raise LLMError(f"LLM API call failed: {str(e)}")
+    
+    def _extract_plantuml(self, llm_response: str) -> str:
+        """
+        Extract clean PlantUML code from LLM response.
+        
+        Handles triple-backtick code fences and removes markdown formatting.
+        
+        Args:
+            llm_response: Raw response from LLM
+            
+        Returns:
+            Clean PlantUML code
+            
+        Raises:
+            LLMError: If no valid PlantUML code found
+        """
+        # Try to extract from code fence first (```plantuml or just ```)
+        code_fence_pattern = r"```(?:plantuml)?\s*\n(.*?)\n```"
+        match = re.search(code_fence_pattern, llm_response, re.DOTALL)
+        
+        if match:
+            plantuml_code = match.group(1).strip()
+        else:
+            # No code fence, use the entire response
+            plantuml_code = llm_response.strip()
+        
+        # Ensure proper tags
+        if not plantuml_code.startswith("@startwbs") and not plantuml_code.startswith("@startuml"):
+            plantuml_code = "@startwbs\n" + plantuml_code
+        
+        if not plantuml_code.endswith("@endwbs") and not plantuml_code.endswith("@enduml"):
+            plantuml_code = plantuml_code + "\n@endwbs"
+        
+        # Basic validation: should contain '@startwbs' or '@startuml'
+        if not re.search(r'@start(wbs|uml)', plantuml_code, re.IGNORECASE):
+            raise LLMError(
+                "Invalid PlantUML code: must contain '@startwbs' or '@startuml' declaration"
+            )
+        
+        return plantuml_code
+    
+    def _fallback_mock_wbs(self, prompt: str) -> str:
+        """
+        Fallback mock implementation for WBS when LLM API is not available.
+        
+        Returns a simple example WBS based on prompt keywords.
+        
+        Args:
+            prompt: User prompt (used to customize output slightly)
+            
+        Returns:
+            Simple PlantUML WBS code
+        """
+        logger.info("Using fallback mock WBS generation")
+        
+        # Extract potential project name from prompt
+        words = prompt.split()[:3]
+        project_name = " ".join(words).title() if words else "Example Project"
+        
+        return f"""@startwbs
+* {project_name}
+** Planning Phase
+*** Requirements Gathering
+*** Resource Allocation
+** Execution Phase
+*** Task Development
+*** Quality Assurance
+** Completion Phase
+*** Testing
+*** Deployment
+@endwbs"""
+    
     def _fallback_mock(self, prompt: str) -> str:
         """
         Fallback mock implementation when OpenAI API is not available.

@@ -1,287 +1,260 @@
 # Flowgen 🎨
 
-A production-ready FastAPI application that generates beautiful diagrams from natural language descriptions using LLM and Graphviz.
+**AI-Powered Diagram Generator**
 
-## 🌟 Features
+Generate beautiful diagrams and Work Breakdown Structures from natural language using AI. Simple, fast, and production-ready.
 
-- **Natural Language to Diagrams**: Describe what you want in plain English, get a professional diagram
-- **Multiple Output Formats**: SVG (vector) and PNG (raster) support
-- **Multiple Layout Engines**: Choose from dot, neato, fdp, sfdp, twopi, and circo
-- **REST API**: Clean, well-documented endpoints
-- **Modern Web UI**: Beautiful, responsive frontend included
-- **Docker Ready**: Production-ready containerization
-- **Type Safe**: Full type hints and Pydantic validation
-- **Error Handling**: Comprehensive error handling and validation
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green.svg)](https://fastapi.tiangolo.com/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## 📋 Prerequisites
+## ✨ Features
 
-### System Requirements
+### 🎯 Dual Diagram Types
+- **Flowcharts & Diagrams** - Network topologies, flowcharts, class diagrams, state machines (via Graphviz)
+- **Work Breakdown Structures (WBS)** - Project hierarchies, task breakdowns, organizational charts (via PlantUML)
 
+### 🚀 Powerful Capabilities
+- **Natural Language Input** - Describe in plain English, get professional diagrams
+- **Multiple Output Formats** - SVG (vector) and PNG (raster)
+- **Multiple Layout Engines** - 6 Graphviz engines for optimal diagram layout
+- **REST API** - Clean, documented endpoints with interactive Swagger UI
+- **Modern Web Interface** - Beautiful, responsive frontend with tabbed interface
+- **Multi-LLM Support** - OpenAI, NVIDIA NIM, or Google Gemini
+- **Type-Safe** - Full type hints and Pydantic validation
+- **Production Ready** - Comprehensive error handling, logging, and monitoring
+
+## 📋 Quick Start
+
+### Prerequisites
+
+**Required:**
 1. **Python 3.11+**
-2. **Graphviz** (system binaries required)
+2. **Graphviz** (system package)
+3. **LLM API Key** (OpenAI, NVIDIA NIM, or Google Gemini)
 
-### Install Graphviz
+**Install Graphviz:**
 
-#### macOS
 ```bash
+# macOS
 brew install graphviz
-```
 
-#### Ubuntu/Debian
-```bash
-sudo apt-get update
+# Ubuntu/Debian
 sudo apt-get install graphviz libgraphviz-dev
+
+# Windows
+# Download from https://graphviz.org/download/
+# Add to PATH and verify: dot -V
 ```
 
-#### Windows
-Download and install from [Graphviz Downloads](https://graphviz.org/download/)
-
-After installation, ensure `dot` is in your PATH:
-```bash
-dot -V  # Should print Graphviz version
-```
-
-### LLM API Keys
-
-Choose your preferred LLM provider:
-
-**Option 1: OpenAI**
-- Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
-
-**Option 2: NVIDIA NIM**
-- Get your API key from [NVIDIA NIM](https://build.nvidia.com/explore/discover)
-- Supports models like `qwen3-next-80b-a3b-instruct`, `meta/llama-3.1-405b-instruct`, etc.
-
-## 🚀 Quick Start
-
-### 1. Clone and Setup
+### Installation
 
 ```bash
 # Clone repository
+git clone <your-repo-url>
 cd Flowgen
 
 # Create virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
 ```
 
-### 2. Configure Environment
+### Configuration
 
-Create a `.env` file or export environment variables:
+Create a `.env` file in the project root:
 
-**For OpenAI:**
-```bash
-# LLM Provider
-export LLM_PROVIDER="openai"
+```env
+# LLM Provider (choose one: openai, nvidia, or gemini)
+LLM_PROVIDER=nvidia
 
-# OpenAI Configuration (Required)
-export OPENAI_API_KEY="sk-your-api-key-here"
-export OPENAI_MODEL="gpt-4"                    # or gpt-3.5-turbo
+# === OpenAI Configuration ===
+OPENAI_API_KEY=sk-your-api-key-here
+OPENAI_MODEL=gpt-4
 
-# Optional (with defaults)
-export HOST="0.0.0.0"
-export PORT="8000"
-export MAX_PROMPT_LENGTH="2000"
-export MAX_DOT_LENGTH="50000"
-export MAX_TOKENS="1024"
-export LOG_LEVEL="INFO"
+# === NVIDIA NIM Configuration ===
+NVIDIA_API_KEY=nvapi-your-key-here
+NVIDIA_MODEL=qwen/qwen3-next-80b-a3b-instruct
+NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
+
+# === Google Gemini Configuration ===
+GOOGLE_API_KEY=your-gemini-key-here
+GEMINI_MODEL=gemini-pro
+
+# === Server Configuration (Optional) ===
+HOST=0.0.0.0
+PORT=8000
+LOG_LEVEL=INFO
+DEBUG=false
+
+# === Limits (Optional) ===
+MAX_PROMPT_LENGTH=2000
+MAX_DOT_LENGTH=50000
+MAX_PLANTUML_LENGTH=50000
+MAX_TOKENS=1024
+
+# === PlantUML Server (Optional) ===
+PLANTUML_SERVER_URL=https://www.plantuml.com/plantuml
+
+# === CORS (Optional) ===
+CORS_ORIGINS=http://localhost:8000,http://localhost:3000,http://127.0.0.1:8000
 ```
 
-**For NVIDIA NIM:**
-```bash
-# LLM Provider
-export LLM_PROVIDER="nvidia"
-
-# NVIDIA NIM Configuration (Required)
-export NVIDIA_API_KEY="nvapi-your-key-here"
-export NVIDIA_MODEL="qwen3-next-80b-a3b-instruct"
-
-# Optional (with defaults)
-export NVIDIA_BASE_URL="https://integrate.api.nvidia.com/v1"
-export HOST="0.0.0.0"
-export PORT="8000"
-export MAX_PROMPT_LENGTH="2000"
-export MAX_DOT_LENGTH="50000"
-export MAX_TOKENS="1024"
-export LOG_LEVEL="INFO"
-```
-
-### 3. Run the Application
+### Run the Application
 
 ```bash
-# Development mode
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-
-# Production mode
+# Start the server
 python -m app.main
+
+# Or with uvicorn for development
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Visit [http://localhost:8000](http://localhost:8000) to use the web interface!
+**Access the application:**
+- **Web UI**: http://localhost:8000
+- **API Docs**: http://localhost:8000/docs
+- **Health Check**: http://localhost:8000/health
 
-## 🐳 Docker Deployment
+## 🎨 Using the Web Interface
 
-### Build and Run
+### 1. Generate Diagrams (Graphviz)
+
+Click the **"📊 Diagram"** tab and try:
+
+```
+Draw a flowchart for user authentication with login, validation, 
+and error handling
+```
+
+```
+Create a network diagram with router, firewall, web servers, 
+and database cluster
+```
+
+**Supports:** Flowcharts, network diagrams, class diagrams, state machines, organizational charts, and more.
+
+### 2. Generate WBS (PlantUML)
+
+Click the **"📋 WBS"** tab and try:
+
+```
+Create a WBS for building a mobile app with planning, design, 
+development, testing, and deployment phases
+```
+
+```
+Create a WBS for an e-commerce platform with user management, 
+product catalog, shopping cart, and payment processing
+```
+
+**Supports:** Project hierarchies, work breakdowns, task decomposition, organizational structures.
+
+## 📚 API Reference
+
+### Diagram Endpoints
+
+#### Generate Diagram from Natural Language
 
 ```bash
-# Build image
-docker build -t flowgen .
-
-# Run container with OpenAI
-docker run -d \
-  -p 8000:8000 \
-  -e LLM_PROVIDER="openai" \
-  -e OPENAI_API_KEY="sk-your-api-key-here" \
-  -e OPENAI_MODEL="gpt-4" \
-  --name flowgen \
-  flowgen
-
-# Or run with NVIDIA NIM
-docker run -d \
-  -p 8000:8000 \
-  -e LLM_PROVIDER="nvidia" \
-  -e NVIDIA_API_KEY="nvapi-your-key-here" \
-  -e NVIDIA_MODEL="qwen3-next-80b-a3b-instruct" \
-  --name flowgen \
-  flowgen
+POST /api/diagram/generate
 ```
 
-### Using Docker Compose
-
-Create `docker-compose.yml`:
-
-```yaml
-version: '3.8'
-
-services:
-  flowgen:
-    build: .
-    ports:
-      - "8000:8000"
-    environment:
-      # Choose your provider
-      - LLM_PROVIDER=nvidia  # or "openai"
-      
-      # OpenAI Configuration (if using OpenAI)
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - OPENAI_MODEL=gpt-4
-      
-      # NVIDIA NIM Configuration (if using NVIDIA)
-      - NVIDIA_API_KEY=${NVIDIA_API_KEY}
-      - NVIDIA_MODEL=qwen3-next-80b-a3b-instruct
-      
-      - LOG_LEVEL=INFO
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-```
-
-Run with:
-```bash
-docker-compose up -d
-```
-
-## 📚 API Documentation
-
-### Endpoints
-
-#### 1. Generate Diagram from Prompt
-
-**POST** `/api/diagram/generate`
-
-Generate a diagram from natural language description.
-
-**Request Body:**
+**Request:**
 ```json
 {
-  "prompt": "Draw a flowchart for user signup with validation and error handling",
+  "prompt": "Draw a flowchart for order processing",
   "format": "svg",
   "layout": "dot"
 }
 ```
 
 **Parameters:**
-- `prompt` (string, required): Natural language description of the diagram
-- `format` (string, optional): Output format - "svg" or "png" (default: "svg")
-- `layout` (string, optional): Graphviz engine - "dot", "neato", "fdp", "sfdp", "twopi", "circo" (default: "dot")
+- `prompt` (string, required) - Natural language description
+- `format` (string) - "svg" or "png" (default: "svg")
+- `layout` (string) - "dot", "neato", "fdp", "sfdp", "twopi", "circo" (default: "dot")
 
-**Response:**
-- Default: Image with appropriate `Content-Type` (image/svg+xml or image/png)
-- With `Accept: application/json` header:
-```json
-{
-  "diagram_dot": "digraph {...}",
-  "image_base64": "PD94bWwgdmVyc2lvbj0...",
-  "format": "svg"
-}
-```
+**Response:** Image bytes (SVG/PNG) or JSON with base64 image
 
-**Example cURL:**
+**Example:**
 ```bash
-# Get SVG directly
 curl -X POST http://localhost:8000/api/diagram/generate \
   -H "Content-Type: application/json" \
   -d '{
-    "prompt": "Draw a flowchart for user login with username/password validation",
+    "prompt": "Create a login flowchart with validation",
     "format": "svg"
   }' \
   --output diagram.svg
-
-# Get PNG
-curl -X POST http://localhost:8000/api/diagram/generate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "prompt": "Create a network diagram with router, firewall, and servers",
-    "format": "png"
-  }' \
-  --output diagram.png
-
-# Get JSON response
-curl -X POST http://localhost:8000/api/diagram/generate \
-  -H "Content-Type: application/json" \
-  -H "Accept: application/json" \
-  -d '{
-    "prompt": "Show a class diagram for e-commerce system",
-    "format": "svg"
-  }'
 ```
 
-#### 2. Preview Diagram from DOT Code
+#### Preview DOT Code
 
-**POST** `/api/diagram/preview`
+```bash
+POST /api/diagram/preview
+```
 
-Render a diagram from Graphviz DOT code directly (no LLM call).
-
-**Request Body:**
+**Request:**
 ```json
 {
-  "dot": "digraph { A -> B; B -> C; }",
+  "dot": "digraph { A -> B -> C; }",
   "format": "svg",
   "layout": "dot"
 }
 ```
 
-**Example cURL:**
+### WBS Endpoints
+
+#### Generate WBS from Natural Language
+
 ```bash
-curl -X POST http://localhost:8000/api/diagram/preview \
-  -H "Content-Type: application/json" \
-  -d '{
-    "dot": "digraph test { rankdir=LR; A -> B -> C; }",
-    "format": "svg"
-  }' \
-  --output preview.svg
+POST /api/wbs/generate
 ```
 
-#### 3. Health Check
+**Request:**
+```json
+{
+  "prompt": "Create a WBS for software development project",
+  "format": "svg"
+}
+```
 
-**GET** `/api/health`
+**Parameters:**
+- `prompt` (string, required) - Natural language description
+- `format` (string) - "svg" or "png" (default: "svg")
 
-Check if the service is running.
+**Response:** Image bytes (SVG/PNG) or JSON with base64 image
+
+**Example:**
+```bash
+curl -X POST http://localhost:8000/api/wbs/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Create a WBS for website redesign project",
+    "format": "svg"
+  }' \
+  --output wbs.svg
+```
+
+#### Preview PlantUML Code
+
+```bash
+POST /api/wbs/preview
+```
+
+**Request:**
+```json
+{
+  "plantuml_code": "@startwbs\n* Project\n** Phase 1\n@endwbs",
+  "format": "svg"
+}
+```
+
+### Health Check
+
+```bash
+GET /health
+```
 
 **Response:**
 ```json
@@ -291,204 +264,201 @@ Check if the service is running.
 }
 ```
 
-**Example cURL:**
-```bash
-curl http://localhost:8000/api/health
+## 🏗️ Project Structure
+
 ```
-
-### Interactive API Documentation
-
-Once the server is running, visit:
-- **Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
-- **ReDoc**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
+Flowgen/
+├── app/
+│   ├── controller/          # API endpoints
+│   │   ├── diagram_controller.py
+│   │   ├── wbs_controller.py
+│   │   └── health_controller.py
+│   ├── services/            # Business logic
+│   │   ├── diagram_service.py
+│   │   ├── wbs_service.py
+│   │   ├── llm_service.py
+│   │   ├── render_service.py (Graphviz)
+│   │   └── plantuml_service.py (PlantUML)
+│   ├── schemas/             # Pydantic models
+│   │   ├── diagram_schema.py
+│   │   ├── wbs_schema.py
+│   │   └── common_schema.py
+│   ├── middleware/          # Request/response middleware
+│   ├── core/                # Configuration & exceptions
+│   ├── utils/               # Logging utilities
+│   └── main.py              # FastAPI application
+├── frontend/
+│   └── index.html           # Web interface
+├── tests/
+│   ├── unit/                # Unit tests
+│   └── integration/         # Integration tests
+├── requirements.txt         # Python dependencies
+├── pyproject.toml          # Project metadata
+└── README.md               # This file
+```
 
 ## 🧪 Testing
 
 ```bash
-# Install test dependencies (included in requirements.txt)
-pip install pytest pytest-asyncio httpx
-
-# Run tests
+# Run all tests
 pytest tests/ -v
 
 # Run with coverage
-pytest tests/ -v --cov=app --cov-report=html
+pytest tests/ --cov=app --cov-report=html
 
-# Run specific test file
-pytest tests/test_render.py -v
+# Run specific test
+pytest tests/unit/test_render_service.py -v
 ```
 
-## 🏗️ Project Structure
+## 🔐 Environment Variables
 
-```
-flowgen/
-├── app/
-│   ├── main.py              # FastAPI application and endpoints
-│   ├── llm_client.py        # OpenAI LLM wrapper
-│   ├── diagram_renderer.py  # Graphviz rendering functions
-│   ├── schemas.py           # Pydantic models
-│   └── config.py            # Configuration management
-├── frontend/
-│   └── index.html           # Web UI
-├── tests/
-│   └── test_render.py       # Unit tests
-├── Dockerfile               # Docker configuration
-├── requirements.txt         # Python dependencies
-└── README.md               # This file
-```
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `LLM_PROVIDER` | LLM provider: `openai`, `nvidia`, or `gemini` | `openai` | ✅ |
+| `OPENAI_API_KEY` | OpenAI API key | - | If using OpenAI |
+| `OPENAI_MODEL` | OpenAI model name | `gpt-4` | If using OpenAI |
+| `NVIDIA_API_KEY` | NVIDIA NIM API key | - | If using NVIDIA |
+| `NVIDIA_MODEL` | NVIDIA model name | `qwen/qwen3-next-80b-a3b-instruct` | If using NVIDIA |
+| `GOOGLE_API_KEY` | Google Gemini API key | - | If using Gemini |
+| `GEMINI_MODEL` | Gemini model name | `gemini-pro` | If using Gemini |
+| `HOST` | Server host | `0.0.0.0` | ❌ |
+| `PORT` | Server port | `8000` | ❌ |
+| `LOG_LEVEL` | Logging level | `INFO` | ❌ |
+| `MAX_PROMPT_LENGTH` | Max prompt characters | `2000` | ❌ |
+| `MAX_DOT_LENGTH` | Max DOT code characters | `50000` | ❌ |
+| `MAX_PLANTUML_LENGTH` | Max PlantUML code characters | `50000` | ❌ |
+| `MAX_TOKENS` | Max LLM tokens | `1024` | ❌ |
+| `PLANTUML_SERVER_URL` | PlantUML server URL | `https://www.plantuml.com/plantuml` | ❌ |
+| `CORS_ORIGINS` | Allowed CORS origins (comma-separated) | `http://localhost:8000,...` | ❌ |
 
-## 🔒 Production Considerations
+## 💡 Example Prompts
 
-### Security
+### Diagrams (Graphviz)
 
-1. **API Key Management**: Never commit API keys. Use environment variables or secrets management.
-2. **Rate Limiting**: Implement rate limiting (e.g., using slowapi or nginx)
-3. **Input Validation**: Already implemented with Pydantic; consider additional sanitization
-4. **CORS**: Configure `CORS_ORIGINS` appropriately for your domain
-5. **Authentication**: Add API key auth or OAuth for production use
+**Flowcharts:**
+- "Draw a flowchart for user registration with email verification"
+- "Create a decision tree for customer support ticket routing"
 
-### Performance
+**Network Diagrams:**
+- "Show a cloud architecture with load balancer, app servers, and Redis cache"
+- "Design a microservices topology with API gateway and message queue"
 
-1. **Caching**: Cache frequent prompts using Redis/Memcached
-2. **Task Queue**: Use Celery/RQ for async diagram generation
-3. **Resource Limits**: Set timeouts and memory limits for Graphviz rendering
-4. **Connection Pooling**: Use connection pools for database (if adding persistence)
+**Class Diagrams:**
+- "Create a class diagram for a blogging platform with User, Post, and Comment"
+- "Design an e-commerce system with Product, Order, and Payment classes"
 
-### Monitoring
+**State Machines:**
+- "Draw a state machine for order lifecycle from cart to delivered"
+- "Show payment states with approval and rejection flows"
 
-1. **Logging**: Configure structured logging (JSON format)
-2. **Metrics**: Add Prometheus metrics for monitoring
-3. **Tracing**: Implement distributed tracing (OpenTelemetry)
-4. **Error Tracking**: Use Sentry or similar for error reporting
+### WBS (PlantUML)
 
-### Scalability
+**Software Projects:**
+- "Create a WBS for developing a SaaS application with MVP and scaling phases"
+- "Break down a mobile app project with iOS and Android development"
 
-1. **Horizontal Scaling**: Run multiple instances behind a load balancer
-2. **Database**: Add PostgreSQL/MongoDB for storing generated diagrams
-3. **CDN**: Serve static frontend assets via CDN
-4. **API Gateway**: Use Kong/Traefik for advanced routing and auth
+**Business Projects:**
+- "Create a WBS for launching a marketing campaign across multiple channels"
+- "Design a product launch breakdown with market research, development, and go-to-market"
 
-## 🛠️ Development
-
-### Code Style
-
-```bash
-# Format code
-black app/ tests/
-
-# Lint
-flake8 app/ tests/
-
-# Type checking
-mypy app/
-```
-
-### Environment Variables Reference
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `LLM_PROVIDER` | LLM provider: `openai` or `nvidia` | `openai` |
-| `OPENAI_API_KEY` | OpenAI API key | None |
-| `OPENAI_MODEL` | OpenAI model to use | `gpt-4` |
-| `OPENAI_BASE_URL` | OpenAI API base URL | `https://api.openai.com/v1` |
-| `NVIDIA_API_KEY` | NVIDIA NIM API key | None |
-| `NVIDIA_MODEL` | NVIDIA NIM model name | `qwen3-next-80b-a3b-instruct` |
-| `NVIDIA_BASE_URL` | NVIDIA NIM API base URL | `https://integrate.api.nvidia.com/v1` |
-| `HOST` | Server host | `0.0.0.0` |
-| `PORT` | Server port | `8000` |
-| `MAX_PROMPT_LENGTH` | Max characters in prompt | `2000` |
-| `MAX_DOT_LENGTH` | Max characters in DOT code | `50000` |
-| `MAX_TOKENS` | Max LLM response tokens | `1024` |
-| `CORS_ORIGINS` | Allowed CORS origins (comma-separated) | `http://localhost:8000,...` |
-| `LOG_LEVEL` | Logging level | `INFO` |
-
-## 📝 Example Prompts
-
-Try these prompts to get started:
-
-1. **Flowcharts**:
-   - "Draw a flowchart for user authentication with login, validation, and error handling"
-   - "Create a process flow for order fulfillment with inventory check and payment"
-
-2. **Network Diagrams**:
-   - "Show a network topology with router, firewall, web server, and database"
-   - "Design a microservices architecture with API gateway, services, and database"
-
-3. **Class Diagrams**:
-   - "Create a class diagram for a blog system with User, Post, and Comment classes"
-   - "Design an e-commerce class structure with Product, Order, and Customer"
-
-4. **State Machines**:
-   - "Draw a state machine for a traffic light system"
-   - "Show order states from pending to delivered with transitions"
-
-5. **Organizational Charts**:
-   - "Create an org chart for a tech company with CEO, CTO, and engineering teams"
-   - "Design a project team structure with PM, developers, and designers"
+**Research Projects:**
+- "Create a WBS for a PhD research project with literature review, experiments, and thesis"
+- "Break down a data science project with data collection, analysis, and visualization"
 
 ## 🐛 Troubleshooting
 
 ### Graphviz Not Found
 
-**Error**: `ExecutableNotFound: failed to execute 'dot'`
+**Error:** `ExecutableNotFound: failed to execute 'dot'`
 
-**Solution**: Install Graphviz system package (see Prerequisites section)
+**Solution:** Install Graphviz system package and ensure it's in your PATH
+
+### PlantUML Connection Failed
+
+**Error:** `Failed to connect to PlantUML server`
+
+**Solution:** 
+- Check your internet connection
+- Verify PlantUML server is accessible: https://www.plantuml.com/plantuml
+- Try changing `PLANTUML_SERVER_URL` in .env
+- Check firewall/proxy settings
 
 ### LLM API Errors
 
-**Error**: `Failed to generate DOT code`
+**Error:** `Failed to generate code`
 
-**Solution**: 
-- Check your API key is valid (OPENAI_API_KEY or NVIDIA_API_KEY)
-- Ensure you have API credits/access
-- Check service status (OpenAI or NVIDIA)
-- Verify LLM_PROVIDER is set correctly (`openai` or `nvidia`)
-- Check model name is correct for your provider
+**Solution:**
+- Verify API key is correct and active
+- Check you have API credits/access
+- Ensure `LLM_PROVIDER` matches your API key (openai/nvidia/gemini)
+- Verify model name is valid for your provider
+- Check provider service status
 
 ### Port Already in Use
 
-**Error**: `Address already in use`
+**Error:** `Address already in use`
 
-**Solution**: Change the PORT environment variable or kill the process using port 8000
+**Solution:**
+```bash
+# Find process using port 8000
+lsof -i :8000  # macOS/Linux
+netstat -ano | findstr :8000  # Windows
 
-### CORS Errors
+# Change port in .env
+PORT=8080
+```
 
-**Error**: `Access-Control-Allow-Origin` errors in browser
+## 🚀 Production Deployment
 
-**Solution**: Add your frontend domain to `CORS_ORIGINS` environment variable
+### Security Best Practices
+
+1. **Never commit API keys** - Use environment variables or secrets management
+2. **Enable authentication** - Add API keys or OAuth for production
+3. **Configure CORS** - Restrict `CORS_ORIGINS` to your domains
+4. **Rate limiting** - Implement request rate limits
+5. **Input validation** - Already included via Pydantic
+
+### Performance Optimization
+
+1. **Caching** - Cache frequent prompts/diagrams with Redis
+2. **Load balancing** - Run multiple instances behind nginx/HAProxy
+3. **Resource limits** - Set memory/CPU limits for rendering
+4. **Monitoring** - Add Prometheus metrics and health checks
+
+### Monitoring & Logging
+
+1. **Structured logging** - Configure JSON logging format
+2. **Error tracking** - Integrate Sentry or similar
+3. **Metrics** - Track response times, success rates, LLM token usage
+4. **Health checks** - Use `/health` endpoint for uptime monitoring
 
 ## 📄 License
 
-This project is provided as-is for educational and development purposes.
+MIT License - see LICENSE file for details
 
 ## 🤝 Contributing
 
 Contributions welcome! Areas for improvement:
 
-- [ ] Add authentication/authorization
-- [ ] Implement caching layer
-- [ ] Add diagram export to PDF
-- [ ] Support for other LLM providers (Anthropic, Azure OpenAI)
-- [ ] Diagram editing capabilities
-- [ ] Template library
-- [ ] Batch diagram generation
-- [ ] Webhook support for async generation
-
-## 📧 Support
-
-For issues and questions, please check:
-1. This README
-2. API documentation at `/docs`
-3. Test files for usage examples
+- Additional diagram types (sequence diagrams, ER diagrams)
+- More LLM providers (Anthropic Claude, Azure OpenAI)
+- Diagram editing and refinement
+- Template library
+- Batch generation
+- Export to additional formats (PDF, DOC)
+- Caching layer
+- Database persistence
 
 ## 🙏 Acknowledgments
 
-- [FastAPI](https://fastapi.tiangolo.com/) - Modern web framework
+- [FastAPI](https://fastapi.tiangolo.com/) - Modern Python web framework
 - [Graphviz](https://graphviz.org/) - Graph visualization software
-- [OpenAI](https://openai.com/) - LLM provider
-- [Python Graphviz](https://graphviz.readthedocs.io/) - Python wrapper
+- [PlantUML](https://plantuml.com/) - UML diagram tool
+- [LangChain](https://python.langchain.com/) - LLM framework
+- OpenAI, NVIDIA, Google - LLM providers
 
 ---
 
-Built with ❤️ using FastAPI and Graphviz
+**Built with ❤️ by developers, for developers**
 
+For questions or issues, please check the [API documentation](http://localhost:8000/docs) or create an issue on GitHub.
