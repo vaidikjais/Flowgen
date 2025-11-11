@@ -1,6 +1,6 @@
-# diagram-gpt-fastapi 🎨
+# Flowgen 🎨
 
-A production-ready FastAPI application that generates beautiful diagrams from natural language descriptions using OpenAI's LLM and Graphviz.
+A production-ready FastAPI application that generates beautiful diagrams from natural language descriptions using LLM and Graphviz.
 
 ## 🌟 Features
 
@@ -41,9 +41,16 @@ After installation, ensure `dot` is in your PATH:
 dot -V  # Should print Graphviz version
 ```
 
-### OpenAI API Key
+### LLM API Keys
 
-Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
+Choose your preferred LLM provider:
+
+**Option 1: OpenAI**
+- Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
+
+**Option 2: NVIDIA NIM**
+- Get your API key from [NVIDIA NIM](https://build.nvidia.com/explore/discover)
+- Supports models like `qwen3-next-80b-a3b-instruct`, `meta/llama-3.1-405b-instruct`, etc.
 
 ## 🚀 Quick Start
 
@@ -51,7 +58,7 @@ Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
 
 ```bash
 # Clone repository
-cd diagram-gpt-fastapi
+cd Flowgen
 
 # Create virtual environment
 python -m venv venv
@@ -65,12 +72,35 @@ pip install -r requirements.txt
 
 Create a `.env` file or export environment variables:
 
+**For OpenAI:**
 ```bash
-# Required
+# LLM Provider
+export LLM_PROVIDER="openai"
+
+# OpenAI Configuration (Required)
 export OPENAI_API_KEY="sk-your-api-key-here"
+export OPENAI_MODEL="gpt-4"                    # or gpt-3.5-turbo
 
 # Optional (with defaults)
-export OPENAI_MODEL="gpt-4"                    # or gpt-3.5-turbo
+export HOST="0.0.0.0"
+export PORT="8000"
+export MAX_PROMPT_LENGTH="2000"
+export MAX_DOT_LENGTH="50000"
+export MAX_TOKENS="1024"
+export LOG_LEVEL="INFO"
+```
+
+**For NVIDIA NIM:**
+```bash
+# LLM Provider
+export LLM_PROVIDER="nvidia"
+
+# NVIDIA NIM Configuration (Required)
+export NVIDIA_API_KEY="nvapi-your-key-here"
+export NVIDIA_MODEL="qwen3-next-80b-a3b-instruct"
+
+# Optional (with defaults)
+export NVIDIA_BASE_URL="https://integrate.api.nvidia.com/v1"
 export HOST="0.0.0.0"
 export PORT="8000"
 export MAX_PROMPT_LENGTH="2000"
@@ -97,15 +127,25 @@ Visit [http://localhost:8000](http://localhost:8000) to use the web interface!
 
 ```bash
 # Build image
-docker build -t diagram-gpt-fastapi .
+docker build -t flowgen .
 
-# Run container
+# Run container with OpenAI
 docker run -d \
   -p 8000:8000 \
+  -e LLM_PROVIDER="openai" \
   -e OPENAI_API_KEY="sk-your-api-key-here" \
   -e OPENAI_MODEL="gpt-4" \
-  --name diagram-gpt \
-  diagram-gpt-fastapi
+  --name flowgen \
+  flowgen
+
+# Or run with NVIDIA NIM
+docker run -d \
+  -p 8000:8000 \
+  -e LLM_PROVIDER="nvidia" \
+  -e NVIDIA_API_KEY="nvapi-your-key-here" \
+  -e NVIDIA_MODEL="qwen3-next-80b-a3b-instruct" \
+  --name flowgen \
+  flowgen
 ```
 
 ### Using Docker Compose
@@ -116,13 +156,22 @@ Create `docker-compose.yml`:
 version: '3.8'
 
 services:
-  diagram-gpt:
+  flowgen:
     build: .
     ports:
       - "8000:8000"
     environment:
+      # Choose your provider
+      - LLM_PROVIDER=nvidia  # or "openai"
+      
+      # OpenAI Configuration (if using OpenAI)
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_MODEL=gpt-4
+      
+      # NVIDIA NIM Configuration (if using NVIDIA)
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY}
+      - NVIDIA_MODEL=qwen3-next-80b-a3b-instruct
+      
       - LOG_LEVEL=INFO
     restart: unless-stopped
     healthcheck:
@@ -272,7 +321,7 @@ pytest tests/test_render.py -v
 ## 🏗️ Project Structure
 
 ```
-diagram-gpt-fastapi/
+flowgen/
 ├── app/
 │   ├── main.py              # FastAPI application and endpoints
 │   ├── llm_client.py        # OpenAI LLM wrapper
@@ -338,9 +387,13 @@ mypy app/
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `OPENAI_API_KEY` | OpenAI API key (required) | None |
+| `LLM_PROVIDER` | LLM provider: `openai` or `nvidia` | `openai` |
+| `OPENAI_API_KEY` | OpenAI API key | None |
 | `OPENAI_MODEL` | OpenAI model to use | `gpt-4` |
 | `OPENAI_BASE_URL` | OpenAI API base URL | `https://api.openai.com/v1` |
+| `NVIDIA_API_KEY` | NVIDIA NIM API key | None |
+| `NVIDIA_MODEL` | NVIDIA NIM model name | `qwen3-next-80b-a3b-instruct` |
+| `NVIDIA_BASE_URL` | NVIDIA NIM API base URL | `https://integrate.api.nvidia.com/v1` |
 | `HOST` | Server host | `0.0.0.0` |
 | `PORT` | Server port | `8000` |
 | `MAX_PROMPT_LENGTH` | Max characters in prompt | `2000` |
@@ -381,14 +434,16 @@ Try these prompts to get started:
 
 **Solution**: Install Graphviz system package (see Prerequisites section)
 
-### OpenAI API Errors
+### LLM API Errors
 
 **Error**: `Failed to generate DOT code`
 
 **Solution**: 
-- Check your API key is valid
-- Ensure you have API credits
-- Check OpenAI service status
+- Check your API key is valid (OPENAI_API_KEY or NVIDIA_API_KEY)
+- Ensure you have API credits/access
+- Check service status (OpenAI or NVIDIA)
+- Verify LLM_PROVIDER is set correctly (`openai` or `nvidia`)
+- Check model name is correct for your provider
 
 ### Port Already in Use
 

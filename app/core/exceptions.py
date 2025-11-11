@@ -6,8 +6,8 @@ that can occur in the application.
 """
 
 
-class DiagramGPTException(Exception):
-    """Base exception for all DiagramGPT errors."""
+class FlowgenException(Exception):
+    """Base exception for all Flowgen errors."""
     
     def __init__(self, message: str, detail: str = None):
         self.message = message
@@ -15,37 +15,37 @@ class DiagramGPTException(Exception):
         super().__init__(self.message)
 
 
-class DiagramGenerationError(DiagramGPTException):
+class DiagramGenerationError(FlowgenException):
     """Raised when diagram generation fails."""
     pass
 
 
-class LLMError(DiagramGPTException):
+class LLMError(FlowgenException):
     """Raised when LLM API call fails."""
     pass
 
 
-class RenderError(DiagramGPTException):
+class RenderError(FlowgenException):
     """Raised when Graphviz rendering fails."""
     pass
 
 
-class ValidationError(DiagramGPTException):
+class ValidationError(FlowgenException):
     """Raised when DOT code validation fails."""
     pass
 
 
-class ConfigurationError(DiagramGPTException):
+class ConfigurationError(FlowgenException):
     """Raised when configuration is invalid or missing."""
     pass
 
 
-class ResourceNotFoundError(DiagramGPTException):
+class ResourceNotFoundError(FlowgenException):
     """Raised when a requested resource is not found."""
     pass
 
 
-class RateLimitError(DiagramGPTException):
+class RateLimitError(FlowgenException):
     """Raised when rate limit is exceeded."""
     pass
 

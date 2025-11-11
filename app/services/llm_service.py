@@ -3,12 +3,14 @@ LLM Service - Business Logic for LLM Interactions
 
 Handles LLM API calls for generating Graphviz DOT code from natural language,
 including retry logic, token tracking, and error handling.
+Uses LangChain for provider abstraction (OpenAI, NVIDIA NIM).
 """
 import re
-import time
 import asyncio
 from typing import Optional, Tuple
 from datetime import datetime, timezone
+
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.core.config import settings
 from app.core.exceptions import LLMError
@@ -55,30 +57,78 @@ digraph login {
 Now generate DOT code based on the user's request."""
     
     def __init__(self):
-        """Initialize the LLM service."""
-        self.api_key = settings.OPENAI_API_KEY
-        self.model = settings.OPENAI_MODEL
-        self.base_url = settings.OPENAI_BASE_URL
+        """Initialize the LLM service with LangChain."""
+        self.provider = settings.LLM_PROVIDER
+        self.llm = None
+        self._use_llm = False
         
-        # Initialize OpenAI client if API key is available
-        if self.api_key:
+        # Initialize LLM based on provider
+        if self.provider == "openai" and settings.OPENAI_API_KEY and settings.OPENAI_MODEL:
             try:
-                import openai
-                self.client = openai.OpenAI(
-                    api_key=self.api_key,
-                    base_url=self.base_url
-                )
-                self._use_openai = True
-                logger.info(f"Initialized OpenAI client with model: {self.model}")
-            except ImportError:
+                from langchain_openai import ChatOpenAI
+                init_params = {
+                    "api_key": settings.OPENAI_API_KEY,
+                    "model": settings.OPENAI_MODEL,
+                    "temperature": 0.3,
+                    "max_tokens": settings.MAX_TOKENS,
+                    "timeout": 30
+                }
+                if settings.OPENAI_BASE_URL:
+                    init_params["base_url"] = settings.OPENAI_BASE_URL
+                
+                self.llm = ChatOpenAI(**init_params)
+                self._use_llm = True
+                logger.info(f"Initialized LangChain with OpenAI: {settings.OPENAI_MODEL}")
+            except ImportError as e:
                 logger.warning(
-                    "openai package not installed. "
-                    "Install with: pip install openai"
+                    f"Failed to import langchain_openai: {e}. "
+                    "Install with: pip install langchain-openai"
                 )
-                self._use_openai = False
-        else:
-            self._use_openai = False
-            logger.warning("No OpenAI API key set. Using fallback mock implementation.")
+        
+        elif self.provider == "nvidia" and settings.NVIDIA_API_KEY and settings.NVIDIA_MODEL:
+            try:
+                from langchain_nvidia_ai_endpoints import ChatNVIDIA
+                init_params = {
+                    "api_key": settings.NVIDIA_API_KEY,
+                    "model": settings.NVIDIA_MODEL,
+                    "temperature": 0.3,
+                    "max_tokens": settings.MAX_TOKENS,
+                    "timeout": 30
+                }
+                if settings.NVIDIA_BASE_URL:
+                    init_params["base_url"] = settings.NVIDIA_BASE_URL
+                
+                self.llm = ChatNVIDIA(**init_params)
+                self._use_llm = True
+                logger.info(f"Initialized LangChain with NVIDIA NIM: {settings.NVIDIA_MODEL}")
+            except ImportError as e:
+                logger.warning(
+                    f"Failed to import langchain_nvidia_ai_endpoints: {e}. "
+                    "Install with: pip install langchain-nvidia-ai-endpoints"
+                )
+        
+        elif self.provider == "gemini" and settings.GOOGLE_API_KEY and settings.GEMINI_MODEL:
+            try:
+                from langchain_google_genai import ChatGoogleGenerativeAI
+                self.llm = ChatGoogleGenerativeAI(
+                    google_api_key=settings.GOOGLE_API_KEY,
+                    model=settings.GEMINI_MODEL,
+                    temperature=0.3,
+                    max_tokens=settings.MAX_TOKENS,
+                    timeout=30
+                )
+                self._use_llm = True
+                logger.info(f"Initialized LangChain with Google Gemini: {settings.GEMINI_MODEL}")
+            except ImportError as e:
+                logger.warning(
+                    f"Failed to import langchain_google_genai: {e}. "
+                    "Install with: pip install langchain-google-genai"
+                )
+        
+        if not self._use_llm:
+            logger.warning(
+                f"No valid configuration for provider '{self.provider}'. Using fallback mock implementation."
+            )
     
     async def generate_dot_code(
         self,
@@ -102,7 +152,7 @@ Now generate DOT code based on the user's request."""
         """
         start_time = datetime.now(timezone.utc)
         
-        if not self._use_openai or not self.api_key:
+        if not self._use_llm:
             dot_code = self._fallback_mock(prompt)
             latency_ms = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
             return dot_code, None, latency_ms
@@ -110,7 +160,7 @@ Now generate DOT code based on the user's request."""
         # Try with retries and exponential backoff
         for attempt in range(max_retries):
             try:
-                response, tokens_used = await self._call_openai_async(prompt, max_tokens)
+                response, tokens_used = await self._call_llm_async(prompt, max_tokens)
                 dot_code = self._extract_dot(response)
                 latency_ms = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
                 
@@ -137,13 +187,13 @@ Now generate DOT code based on the user's request."""
                         detail=str(e)
                     )
     
-    async def _call_openai_async(
+    async def _call_llm_async(
         self,
         prompt: str,
         max_tokens: int
     ) -> Tuple[str, Optional[int]]:
         """
-        Call OpenAI API asynchronously.
+        Call LLM API asynchronously via LangChain.
         
         Args:
             prompt: User prompt
@@ -153,34 +203,30 @@ Now generate DOT code based on the user's request."""
             Tuple of (response_text, tokens_used)
         """
         try:
-            # Run OpenAI call in executor to avoid blocking
-            loop = asyncio.get_event_loop()
-            response = await loop.run_in_executor(
-                None,
-                lambda: self.client.chat.completions.create(
-                    model=self.model,
-                    messages=[
-                        {"role": "system", "content": self.SYSTEM_PROMPT},
-                        {"role": "user", "content": prompt}
-                    ],
-                    max_tokens=max_tokens,
-                    temperature=0.3,  # Lower temperature for deterministic output
-                    timeout=30
-                )
-            )
+            # Prepare messages
+            messages = [
+                SystemMessage(content=self.SYSTEM_PROMPT),
+                HumanMessage(content=prompt)
+            ]
             
-            content = response.choices[0].message.content
+            # Call LLM using LangChain's async invoke
+            response = await self.llm.ainvoke(messages)
+            
+            content = response.content
             if not content:
                 raise LLMError("Empty response from LLM")
             
-            # Extract token usage
-            tokens_used = getattr(response.usage, 'total_tokens', None) if hasattr(response, 'usage') else None
+            # Extract token usage from response metadata
+            tokens_used = None
+            if hasattr(response, 'response_metadata'):
+                usage = response.response_metadata.get('token_usage', {})
+                tokens_used = usage.get('total_tokens')
             
             return content, tokens_used
             
         except Exception as e:
-            logger.error(f"OpenAI API error: {e}")
-            raise LLMError(f"OpenAI API call failed: {str(e)}")
+            logger.error(f"LLM API error ({self.provider}): {e}")
+            raise LLMError(f"LLM API call failed: {str(e)}")
     
     def _extract_dot(self, llm_response: str) -> str:
         """

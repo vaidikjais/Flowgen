@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.exceptions import (
-    DiagramGPTException,
+    FlowgenException,
     ResourceNotFoundError,
     ValidationError,
     RateLimitError
@@ -72,7 +72,7 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
                 }
             )
             
-        except DiagramGPTException as e:
+        except FlowgenException as e:
             logger.error(f"Application error: {e.message}")
             return JSONResponse(
                 status_code=500,

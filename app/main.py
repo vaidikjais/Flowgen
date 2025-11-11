@@ -29,10 +29,19 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Handle application startup and shutdown."""
     logger.info("=" * 60)
-    logger.info("Starting DiagramGPT FastAPI Application")
+    logger.info("Starting Flowgen FastAPI Application")
     logger.info("=" * 60)
     logger.info(f"Environment: {'DEBUG' if settings.DEBUG else 'PRODUCTION'}")
-    logger.info(f"OpenAI Model: {settings.OPENAI_MODEL}")
+    logger.info(f"LLM Provider: {settings.LLM_PROVIDER}")
+    
+    # Log model based on provider
+    if settings.LLM_PROVIDER == "openai" and settings.OPENAI_MODEL:
+        logger.info(f"LLM Model: {settings.OPENAI_MODEL}")
+    elif settings.LLM_PROVIDER == "nvidia" and settings.NVIDIA_MODEL:
+        logger.info(f"LLM Model: {settings.NVIDIA_MODEL}")
+    elif settings.LLM_PROVIDER == "gemini" and settings.GEMINI_MODEL:
+        logger.info(f"LLM Model: {settings.GEMINI_MODEL}")
+    
     logger.info(f"CORS Origins: {settings.CORS_ORIGINS}")
     logger.info("=" * 60)
     logger.info("Application started successfully")
@@ -41,13 +50,13 @@ async def lifespan(app: FastAPI):
     yield
     
     # Shutdown
-    logger.info("Shutting down DiagramGPT...")
+    logger.info("Shutting down Flowgen...")
     logger.info("✓ Application shutdown complete")
 
 
 # Create FastAPI app
 app = FastAPI(
-    title="DiagramGPT",
+    title="Flowgen",
     description="Generate diagrams from natural language using LLM and Graphviz",
     version="1.0.0",
     lifespan=lifespan,
@@ -96,7 +105,7 @@ except RuntimeError:
 async def root():
     """Root endpoint."""
     return {
-        "message": "DiagramGPT API",
+        "message": "Flowgen API",
         "version": "1.0.0",
         "docs": "/docs",
         "health": "/health"

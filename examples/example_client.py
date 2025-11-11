@@ -1,5 +1,5 @@
 """
-Example Python client for diagram-gpt-fastapi API.
+Example Python client for Flowgen API.
 Demonstrates how to programmatically generate diagrams.
 """
 import base64
