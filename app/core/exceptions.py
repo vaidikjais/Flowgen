@@ -35,16 +35,6 @@ class ValidationError(DiagramGPTException):
     pass
 
 
-class CacheError(DiagramGPTException):
-    """Raised when cache operations fail."""
-    pass
-
-
-class DatabaseError(DiagramGPTException):
-    """Raised when database operations fail."""
-    pass
-
-
 class ConfigurationError(DiagramGPTException):
     """Raised when configuration is invalid or missing."""
     pass
