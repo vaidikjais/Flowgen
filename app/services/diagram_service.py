@@ -5,7 +5,7 @@ Orchestrates the complete diagram generation workflow including:
 - LLM generation
 - Graphviz rendering
 """
-from typing import Tuple
+from typing import Tuple, Literal
 from datetime import datetime, timezone
 
 from app.core.config import settings
@@ -32,7 +32,7 @@ class DiagramService:
     async def generate_diagram(
         self,
         prompt: str,
-        format: str = "svg",
+        format: Literal["svg", "png"] = "svg",
         layout: str = "dot"
     ) -> Tuple[bytes, str]:
         """
@@ -104,7 +104,7 @@ class DiagramService:
     async def preview_diagram(
         self,
         dot_code: str,
-        format: str = "svg",
+        format: Literal["svg", "png"] = "svg",
         layout: str = "dot"
     ) -> bytes:
         """

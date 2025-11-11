@@ -9,7 +9,7 @@ that can occur in the application.
 class FlowgenException(Exception):
     """Base exception for all Flowgen errors."""
     
-    def __init__(self, message: str, detail: str = None):
+    def __init__(self, message: str, detail: str | None = None):
         self.message = message
         self.detail = detail
         super().__init__(self.message)
@@ -48,4 +48,3 @@ class ResourceNotFoundError(FlowgenException):
 class RateLimitError(FlowgenException):
     """Raised when rate limit is exceeded."""
     pass
-

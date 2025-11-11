@@ -4,9 +4,13 @@ Configuration Management - Application Settings
 Handles environment variables with sensible defaults using
 Pydantic Settings v2 for type-safe configuration.
 """
-from typing import Optional
+import os
+from typing import Literal, Optional
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class Settings(BaseSettings):
@@ -20,7 +24,8 @@ class Settings(BaseSettings):
     """
     
     # LLM Provider Configuration
-    LLM_PROVIDER: str = Field(
+    LLM_PROVIDER: Literal["openai", "nvidia", "gemini"] = Field(
+        default="nvidia",
         description="LLM provider: 'openai', 'nvidia', or 'gemini'"
     )
     
@@ -111,20 +116,23 @@ class Settings(BaseSettings):
         default=[
             "http://localhost:8000",
             "http://localhost:3000",
-            "http://127.0.0.1:8000"
+            "http://localhost:5500",
+            "http://127.0.0.1:8000",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:5500"
         ],
         description="Allowed CORS origins"
     )
     
     # Logging Configuration
-    LOG_LEVEL: str = Field(
+    LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(
         default="INFO",
         description="Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)"
     )
     
     # Feature Flags
     DEBUG: bool = Field(
-        default=False,
+        default=True,
         description="Enable debug mode"
     )
     
@@ -191,4 +199,3 @@ settings = Settings()
 
 # Validate LLM configuration on startup
 settings.validate_llm()
-

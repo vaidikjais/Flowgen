@@ -18,6 +18,7 @@ dependencies = [
     "langchain-google-genai>=0.0.5",
     "graphviz>=0.20.1",
     "python-multipart>=0.0.6",
+    "mermaid-py>=0.8.0",
 ]
 
 [dependency-groups]

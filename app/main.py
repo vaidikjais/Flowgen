@@ -19,6 +19,7 @@ from app.utils.logger import setup_logging
 from app.controller.diagram_controller import router as diagram_router
 from app.controller.health_controller import router as health_router
 from app.controller.wbs_controller import router as wbs_router
+from app.controller.gantt_controller import router as gantt_router
 
 # Setup logging
 setup_logging(settings.LOG_LEVEL)
@@ -92,6 +93,7 @@ app.include_router(health_router)
 # API routes
 app.include_router(diagram_router)
 app.include_router(wbs_router)
+app.include_router(gantt_router)
 
 
 # Mount static files (frontend) - MUST be after API routes
