@@ -58,24 +58,3 @@ async def test_preview_diagram_invalid_dot(client: AsyncClient):
     assert response.status_code == 500
 
 
-@pytest.mark.asyncio
-async def test_get_diagram_history_empty(client: AsyncClient):
-    """Test getting diagram history when empty."""
-    response = await client.get("/api/diagram/history")
-    
-    assert response.status_code == 200
-    data = response.json()
-    assert "total" in data
-    assert "items" in data
-    assert data["total"] == 0
-    assert len(data["items"]) == 0
-
-
-@pytest.mark.asyncio
-async def test_get_diagram_not_found(client: AsyncClient):
-    """Test getting non-existent diagram."""
-    fake_uuid = "00000000-0000-0000-0000-000000000000"
-    response = await client.get(f"/api/diagram/{fake_uuid}")
-    
-    assert response.status_code == 404
-

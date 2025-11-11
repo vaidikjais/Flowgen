@@ -13,13 +13,6 @@ openai==1.10.0
 # Graphviz Python wrapper
 graphviz==0.20.1
 
-# Database dependencies
-sqlmodel==0.0.14
-sqlalchemy==2.0.25
-asyncpg==0.29.0
-alembic==1.13.1
-greenlet>=3.0.0
-
 # Optional: For enhanced request handling
 python-multipart==0.0.6
 

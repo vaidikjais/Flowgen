@@ -19,12 +19,6 @@ class Settings(BaseSettings):
     3. Default values (defined here)
     """
     
-    # Database Configuration
-    DATABASE_URL: str = Field(
-        default="postgresql+asyncpg://postgres:postgres@localhost:5432/diagramgpt",
-        description="PostgreSQL database connection URL"
-    )
-    
     # OpenAI API Configuration
     OPENAI_API_KEY: Optional[str] = Field(
         default=None,
@@ -90,19 +84,7 @@ class Settings(BaseSettings):
     # Feature Flags
     DEBUG: bool = Field(
         default=False,
-        description="Enable debug mode (shows SQL queries, etc.)"
-    )
-    ENABLE_CACHE: bool = Field(
-        default=True,
-        description="Enable diagram caching to reduce LLM calls"
-    )
-    
-    # Cache Configuration
-    CACHE_RETENTION_DAYS: int = Field(
-        default=30,
-        ge=1,
-        le=365,
-        description="Number of days to retain cached diagrams"
+        description="Enable debug mode"
     )
     
     @field_validator("CORS_ORIGINS", mode="before")
@@ -124,16 +106,6 @@ class Settings(BaseSettings):
                 f"Invalid LOG_LEVEL: {v}. Must be one of {valid_levels}"
             )
         return v_upper
-    
-    @field_validator("DATABASE_URL")
-    @classmethod
-    def validate_database_url(cls, v: str) -> str:
-        """Validate database URL format."""
-        if not v.startswith(("postgresql://", "postgresql+asyncpg://")):
-            raise ValueError(
-                "DATABASE_URL must start with 'postgresql://' or 'postgresql+asyncpg://'"
-            )
-        return v
     
     model_config = SettingsConfigDict(
         env_file=".env",

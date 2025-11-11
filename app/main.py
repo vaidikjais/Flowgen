@@ -11,14 +11,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
-from app.core.database import create_db_and_tables, close_db_connection
 from app.middleware.request_id import RequestIDMiddleware
 from app.middleware.error_handler import ErrorHandlerMiddleware
 from app.utils.logger import setup_logging
 
 # Import all controllers
 from app.controller.diagram_controller import router as diagram_router
-from app.controller.user_preference_controller import router as preference_router
 from app.controller.health_controller import router as health_router
 
 # Setup logging
@@ -34,19 +32,8 @@ async def lifespan(app: FastAPI):
     logger.info("Starting DiagramGPT FastAPI Application")
     logger.info("=" * 60)
     logger.info(f"Environment: {'DEBUG' if settings.DEBUG else 'PRODUCTION'}")
-    logger.info(f"Database: {settings.DATABASE_URL.split('@')[-1]}")  # Don't log credentials
     logger.info(f"OpenAI Model: {settings.OPENAI_MODEL}")
-    logger.info(f"Cache Enabled: {settings.ENABLE_CACHE}")
     logger.info(f"CORS Origins: {settings.CORS_ORIGINS}")
-    
-    # Initialize database
-    try:
-        await create_db_and_tables()
-        logger.info("✓ Database initialized successfully")
-    except Exception as e:
-        logger.error(f"✗ Database initialization failed: {e}")
-        raise
-    
     logger.info("=" * 60)
     logger.info("Application started successfully")
     logger.info("=" * 60)
@@ -55,7 +42,6 @@ async def lifespan(app: FastAPI):
     
     # Shutdown
     logger.info("Shutting down DiagramGPT...")
-    await close_db_connection()
     logger.info("✓ Application shutdown complete")
 
 
@@ -95,7 +81,6 @@ app.include_router(health_router)
 
 # API routes
 app.include_router(diagram_router)
-app.include_router(preference_router)
 
 
 # Mount static files (frontend) - MUST be after API routes

@@ -1,2 +1,2 @@
-"""Core application modules including configuration and database setup."""
+"""Core application modules including configuration."""
 
